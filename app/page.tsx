@@ -7,6 +7,7 @@ type ChatMessage = {
   content: string;
 };
 
+
 export default function Home() {
   // ---- Login / session info
   const [classCode, setClassCode] = useState("");
@@ -92,6 +93,13 @@ export default function Home() {
       e.preventDefault();
       sendMessage();
     }
+  }
+
+  function newProblem() {
+    setMessages([]);
+    setStudentInput("");
+    setErrorText(null);
+    setLoading(false);
   }
 
   // ---- Screen 1: Class Code + Nickname
