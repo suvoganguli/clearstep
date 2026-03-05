@@ -37,7 +37,28 @@ export async function POST(req) {
     const policyText = loadPolicyText();
     const recent = Array.isArray(history) ? history.slice(-10) : [];
 
+    // Deterministic engine first
     const det = buildDeterministicContext(problem || "", studentMessage || "");
+
+    const k = det?.stepVerdict?.kind;
+
+    if (k === "STEP1_RESULT_CORRECT") {
+      return Response.json({
+        response_type: "FEEDBACK",
+        hint_level: 1,
+        content: `Nice. Now you have ${det.solved.a}x = ${det.solved.c - det.solved.b}. What should you do next to isolate x?`,
+      });
+    }
+
+    if (k === "FINAL_CORRECT") {
+
+      return Response.json({
+        response_type: "DONE",
+        hint_level: 0,
+        content: "✅ Correct. Want to try a new problem?",
+      });
+    }
+
 
     const system = `
 You are ClearStep, a math coach for middle-school algebra.
@@ -109,7 +130,11 @@ OUTPUT RULES (MANDATORY):
     }
 
     return Response.json({ error: `Tutor failed validation: ${lastReason}` }, { status: 500 });
-  } catch {
-    return Response.json({ error: "Server error" }, { status: 500 });
-  }
+} catch (error) {
+  console.error("Tutor API error:", error);
+  return Response.json(
+    { error: error?.message || String(error) || "Server error" },
+    { status: 500 }
+  );
+}
 }

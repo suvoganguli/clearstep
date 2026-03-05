@@ -175,8 +175,16 @@ export default function Home() {
         </div>
       </div>
 
-      <div style={{ marginTop: "18px", display: "grid", gridTemplateColumns: "1fr", gap: "10px" }}>
+      <div
+        style={{
+          marginTop: "18px",
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "10px",
+        }}
+      >
         <label style={{ fontWeight: 600 }}>Problem</label>
+
         <input
           type="text"
           value={problem}
@@ -188,10 +196,35 @@ export default function Home() {
             border: "1px solid #ddd",
           }}
         />
+
         <div style={{ color: "#666", fontSize: "13px" }}>
           Phase 1 supports linear equations like <code>ax + b = c</code> with integers.
         </div>
+
+        <button
+          onClick={() => {
+            setMessages([]);
+            setStudentInput("");
+            setErrorText(null);
+            setLoading(false);
+          }}
+          style={{
+            marginTop: "6px",
+            padding: "10px 14px",
+            borderRadius: "8px",
+            border: "1px solid #444",
+            background: "#111",
+            color: "#fff",
+            fontWeight: 500,
+            cursor: "pointer",
+            width: "140px",
+          }}
+        >
+          New Problem
+        </button>
       </div>
+
+
 
       <div
         style={{
