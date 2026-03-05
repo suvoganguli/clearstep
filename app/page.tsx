@@ -31,6 +31,16 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  useEffect(() => {
+    // Reset tutor session when problem text changes
+    setMessages([]);
+    setStudentInput("");
+    setErrorText(null);
+    setLoading(false);
+    setIsDone(false);
+  }, [problem]);
+
+
   const canStart = useMemo(() => {
     return classCode.trim().length > 0 && nickname.trim().length > 0;
   }, [classCode, nickname]);

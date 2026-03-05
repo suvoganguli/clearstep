@@ -107,7 +107,7 @@ OUTPUT RULES (MANDATORY):
         response_type: "REFUSAL",
         hint_level: 0,
         content:
-          "For the pilot, I can help with linear equations like 3x + 5 = 20 (integers only). Please rewrite the problem in that form.",
+          "I can currently help with linear equations of the form ax + b = c where the solution for x is an integer (for example: 3x + 5 = 20). Please try another problem.",
       });
     }
 
