@@ -2,18 +2,18 @@ import OpenAI from "openai";
 import { loadPolicyText } from "@/lib/policyLoader";
 import { validateTutorJSON } from "@/lib/schemaValidator";
 
-import { parseAxPlusBEqualsC } from "@/lib/algebra/linearParser";
-import { solveLinear, checkNextStep } from "@/lib/algebra/linearEngine";
+import { tryParseLinear, solveLinearFor, checkNextStepFor } from "@/lib/algebra/linear";
 
 function buildDeterministicContext(problem, studentMessage) {
   try {
-    const parsedEq = parseAxPlusBEqualsC(problem);
-    const solved = solveLinear(parsedEq);
-    const stepVerdict = checkNextStep(studentMessage, solved);
+    const { version, parsed } = tryParseLinear(problem);
+    const solved = solveLinearFor(version, parsed);
+    const stepVerdict = checkNextStepFor(version, studentMessage, solved);
 
     return {
       supported: true,
-      parsed: parsedEq,
+      version,
+      parsed,
       solved: { a: solved.a, b: solved.b, c: solved.c, num: solved.num, x: solved.x },
       stepVerdict,
     };
