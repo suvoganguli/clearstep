@@ -1,65 +1,296 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+
+type ChatMessage = {
+  role: "student" | "tutor";
+  content: string;
+};
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // ---- Login / session info
+  const [classCode, setClassCode] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [started, setStarted] = useState(false);
+
+  // ---- Tutor state
+  const [problem, setProblem] = useState("3x + 5 = 20");
+  const [studentInput, setStudentInput] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+
+  // ---- Auto-scroll
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const canStart = useMemo(() => {
+    return classCode.trim().length > 0 && nickname.trim().length > 0;
+  }, [classCode, nickname]);
+
+  async function sendMessage() {
+    const msg = studentInput.trim();
+    if (!msg) return;
+
+    setErrorText(null);
+
+    // Add student message
+    const studentMsg: ChatMessage = { role: "student", content: msg };
+    const nextMessages = [...messages, studentMsg];
+    setMessages(nextMessages);
+    setStudentInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/tutor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          problem,
+          studentMessage: msg,
+          history: nextMessages.map((m) => ({
+            role: m.role === "student" ? "user" : "assistant",
+            content: m.content,
+          })),
+          // classCode, nickname can be sent later if you want
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorText(data?.error || "Server error.");
+        setMessages((prev) => [
+          ...prev,
+          { role: "tutor", content: "Sorry — something went wrong on the server." },
+        ]);
+        return;
+      }
+
+      const tutorText =
+        typeof data?.content === "string" && data.content.trim().length > 0
+          ? data.content
+          : "I didn’t understand that. Try again.";
+
+      setMessages((prev) => [...prev, { role: "tutor", content: tutorText }]);
+    } catch {
+      setErrorText("Network error.");
+      setMessages((prev) => [
+        ...prev,
+        { role: "tutor", content: "Sorry — I couldn’t reach the server." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  // ---- Screen 1: Class Code + Nickname
+  if (!started) {
+    return (
+      <main style={{ padding: "40px", fontFamily: "Arial, sans-serif" }}>
+        <h1 style={{ fontSize: "32px", marginBottom: "10px" }}>ClearStep</h1>
+
+        <p style={{ marginBottom: "30px", maxWidth: "640px" }}>
+          An interactive math reasoning coach that guides students step-by-step without giving away
+          full solutions.
+        </p>
+
+        <div style={{ maxWidth: "420px" }}>
+          <label style={{ display: "block", marginBottom: "6px" }}>Class Code</label>
+          <input
+            type="text"
+            value={classCode}
+            onChange={(e) => setClassCode(e.target.value)}
+            placeholder="Enter class code"
+            style={{
+              width: "100%",
+              padding: "10px",
+              marginBottom: "16px",
+              borderRadius: "8px",
+              border: "1px solid #ddd",
+            }}
+          />
+
+          <label style={{ display: "block", marginBottom: "6px" }}>Nickname</label>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="Enter nickname"
+            style={{
+              width: "100%",
+              padding: "10px",
+              marginBottom: "20px",
+              borderRadius: "8px",
+              border: "1px solid #ddd",
+            }}
+          />
+
+          <button
+            onClick={() => setStarted(true)}
+            disabled={!canStart}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: canStart ? "#111" : "#999",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: canStart ? "pointer" : "not-allowed",
+              width: "100%",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Start
+          </button>
         </div>
       </main>
-    </div>
+    );
+  }
+
+  // ---- Screen 2: Tutor chat
+  return (
+    <main style={{ padding: "24px", fontFamily: "Arial, sans-serif", maxWidth: "980px", margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "16px" }}>
+        <h1 style={{ fontSize: "28px", margin: 0 }}>ClearStep</h1>
+        <div style={{ color: "#555" }}>
+          <span style={{ marginRight: "12px" }}>Class: <b>{classCode}</b></span>
+          <span>User: <b>{nickname}</b></span>
+        </div>
+      </div>
+
+      <div style={{ marginTop: "18px", display: "grid", gridTemplateColumns: "1fr", gap: "10px" }}>
+        <label style={{ fontWeight: 600 }}>Problem</label>
+        <input
+          type="text"
+          value={problem}
+          onChange={(e) => setProblem(e.target.value)}
+          placeholder="Enter a linear equation like 3x + 5 = 20"
+          style={{
+            padding: "10px",
+            borderRadius: "8px",
+            border: "1px solid #ddd",
+          }}
+        />
+        <div style={{ color: "#666", fontSize: "13px" }}>
+          Phase 1 supports linear equations like <code>ax + b = c</code> with integers.
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: "18px",
+          height: "60vh",
+          border: "1px solid #e5e5e5",
+          borderRadius: "12px",
+          padding: "14px",
+          overflowY: "auto",
+          background: "#fafafa",
+        }}
+      >
+        {messages.length === 0 ? (
+          <div style={{ color: "#666" }}>
+            Type your first step below. Example: <code>subtract 5</code> or <code>15</code>.
+          </div>
+        ) : null}
+
+        {messages.map((m, i) => {
+          const isStudent = m.role === "student";
+          return (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: isStudent ? "flex-end" : "flex-start",
+                marginBottom: "10px",
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: "75%",
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  background: isStudent ? "#111" : "#fff",
+                  color: isStudent ? "#fff" : "#111",
+                  border: isStudent ? "none" : "1px solid #e6e6e6",
+                  whiteSpace: "pre-wrap",
+                  lineHeight: 1.35,
+                }}
+              >
+                <div style={{ fontSize: "12px", opacity: 0.75, marginBottom: "4px" }}>
+                  {isStudent ? nickname : "Tutor"}
+                </div>
+                {m.content}
+              </div>
+            </div>
+          );
+        })}
+
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "10px" }}>
+            <div
+              style={{
+                maxWidth: "75%",
+                padding: "10px 12px",
+                borderRadius: "12px",
+                background: "#fff",
+                border: "1px solid #e6e6e6",
+                color: "#111",
+              }}
+            >
+              <div style={{ fontSize: "12px", opacity: 0.75, marginBottom: "4px" }}>Tutor</div>
+              Thinking…
+            </div>
+          </div>
+        ) : null}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {errorText ? (
+        <div style={{ marginTop: "10px", color: "#b00020" }}>
+          {errorText}
+        </div>
+      ) : null}
+
+      <div style={{ marginTop: "14px", display: "flex", gap: "10px" }}>
+        <input
+          type="text"
+          value={studentInput}
+          onChange={(e) => setStudentInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder='Enter your next step (e.g., "15" or "x=5")'
+          style={{
+            flex: 1,
+            padding: "12px",
+            borderRadius: "10px",
+            border: "1px solid #ddd",
+          }}
+        />
+        <button
+          onClick={sendMessage}
+          disabled={loading || !studentInput.trim()}
+          style={{
+            padding: "12px 16px",
+            borderRadius: "10px",
+            border: "none",
+            cursor: loading || !studentInput.trim() ? "not-allowed" : "pointer",
+            background: loading || !studentInput.trim() ? "#999" : "#111",
+            color: "#fff",
+            minWidth: "110px",
+          }}
+        >
+          Send
+        </button>
+      </div>
+    </main>
   );
 }
