@@ -1,22 +1,28 @@
 import OpenAI from "openai";
 import { loadPolicyText } from "@/lib/policyLoader";
 import { validateTutorJSON } from "@/lib/schemaValidator";
+import { normalizeEquationText } from "@/lib/algebra/common/textNormalize";
 
 import { tryParseLinear, solveLinearFor, checkNextStepFor } from "@/lib/algebra/linear";
 
 function buildDeterministicContext(problem, studentMessage) {
   try {
-    const { version, parsed } = tryParseLinear(problem);
+    const normalized = normalizeEquationText(problem || "");
+    const { version, parsed } = tryParseLinear(normalized);
+
     const solved = solveLinearFor(version, parsed);
-    const stepVerdict = checkNextStepFor(version, studentMessage, solved);
+    const stepVerdict = checkNextStepFor(version, studentMessage || "", solved);
+
+    console.log("NORMALIZED problem:", normalized);
 
     return {
       supported: true,
       version,
       parsed,
-      solved: { a: solved.a, b: solved.b, c: solved.c, num: solved.num, x: solved.x },
+      solved,
       stepVerdict,
     };
+
   } catch (e) {
     return {
       supported: false,
@@ -26,9 +32,15 @@ function buildDeterministicContext(problem, studentMessage) {
 }
 
 export async function POST(req) {
+
+  console.log("MARK A: entered POST");
+
   try {
     const body = await req.json();
     const { problem, studentMessage, history } = body;
+
+    console.log("MARK B: after body parse");
+    console.log("API RECEIVED problem:", JSON.stringify(problem));
 
     const apiKey = process.env.OPENAI_API_KEY;
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
@@ -38,7 +50,9 @@ export async function POST(req) {
     const recent = Array.isArray(history) ? history.slice(-10) : [];
 
     // Deterministic engine first
+    console.log("MARK C1: before buildDeterministicContext");
     const det = buildDeterministicContext(problem || "", studentMessage || "");
+    console.log("MARK C2: after buildDeterministicContext", det?.supported, det?.error, det?.version);
 
     const k = det?.stepVerdict?.kind;
 
