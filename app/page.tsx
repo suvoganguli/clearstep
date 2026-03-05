@@ -9,6 +9,9 @@ type ChatMessage = {
 
 
 export default function Home() {
+
+  const [isDone, setIsDone] = useState(false);
+
   // ---- Login / session info
   const [classCode, setClassCode] = useState("");
   const [nickname, setNickname] = useState("");
@@ -36,6 +39,26 @@ export default function Home() {
     const msg = studentInput.trim();
     if (!msg) return;
 
+  // ---- Step B: if problem finished, allow "yes/new" to reset
+  if (isDone) {
+    const m = msg.toLowerCase();
+
+    const wantsNew =
+      m === "yes" ||
+      m === "y" ||
+      m === "new" ||
+      m === "new problem" ||
+      m === "another" ||
+      m === "another one" ||
+      m === "next";
+
+    if (wantsNew) {
+      setStudentInput("");
+      newProblem();
+      return;
+    }
+  }
+
     setErrorText(null);
 
     // Add student message
@@ -44,6 +67,7 @@ export default function Home() {
     setMessages(nextMessages);
     setStudentInput("");
     setLoading(true);
+    
 
     try {
       const res = await fetch("/api/tutor", {
@@ -60,7 +84,11 @@ export default function Home() {
         }),
       });
 
+      
       const data = await res.json();
+      if (data.response_type === "DONE") {
+       setIsDone(true);
+      }
 
       if (!res.ok) {
         setErrorText(data?.error || "Server error.");
@@ -100,6 +128,7 @@ export default function Home() {
     setStudentInput("");
     setErrorText(null);
     setLoading(false);
+    setIsDone(false);
   }
 
   // ---- Screen 1: Class Code + Nickname
@@ -183,23 +212,6 @@ export default function Home() {
           gap: "10px",
         }}
       >
-        <label style={{ fontWeight: 600 }}>Problem</label>
-
-        <input
-          type="text"
-          value={problem}
-          onChange={(e) => setProblem(e.target.value)}
-          placeholder="Enter a linear equation like 3x + 5 = 20"
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #ddd",
-          }}
-        />
-
-        <div style={{ color: "#666", fontSize: "13px" }}>
-          Phase 1 supports linear equations like <code>ax + b = c</code> with integers.
-        </div>
 
         <button
           onClick={() => {
@@ -222,6 +234,25 @@ export default function Home() {
         >
           New Problem
         </button>
+
+        <label style={{ fontWeight: 600 }}>Problem</label>
+
+        <input
+          type="text"
+          value={problem}
+          onChange={(e) => setProblem(e.target.value)}
+          placeholder="Enter a linear equation like 3x + 5 = 20"
+          style={{
+            padding: "10px",
+            borderRadius: "8px",
+            border: "1px solid #ddd",
+          }}
+        />
+
+        <div style={{ color: "#666", fontSize: "13px" }}>
+          Phase 1 supports linear equations like <code>ax + b = c</code> with integers.
+        </div>
+
       </div>
 
 
