@@ -2,7 +2,13 @@ import OpenAI from "openai";
 import { loadPolicyText } from "@/lib/policyLoader";
 import { validateTutorJSON } from "@/lib/schemaValidator";
 import { normalizeEquationText } from "@/lib/algebra/common/textNormalize";
-import { canonicalizeLinearEquation, tryParseLinear, solveLinearFor, checkNextStepFor } from "@/lib/algebra/linear";
+import {
+  canonicalizeLinearEquation,
+  tryParseLinear,
+  solveLinearFor,
+  checkNextStepFor,
+} from "@/lib/algebra/linear";
+import { classifyStudentIntent } from "@/lib/tutor/classifyStudentIntent";
 
 function buildDeterministicContext(problem, studentMessage) {
   try {
@@ -87,7 +93,8 @@ function buildDeterministicResponse(det) {
         return {
           response_type: "HINT",
           hint_level: 2,
-          content: "Check the result after combining the numbers on the right side.",
+          content:
+            "Check the result after combining the numbers on the right side.",
         };
       }
 
@@ -162,6 +169,12 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { problem, studentMessage, history } = body;
+    const intent = classifyStudentIntent(studentMessage || "");
+
+    const mathInput =
+      intent.kind === "direct_step" || intent.kind === "tentative_step"
+        ? intent.extractedStep || studentMessage || ""
+        : "";
 
     console.log("MARK B: after body parse");
     console.log("API RECEIVED problem:", JSON.stringify(problem));
@@ -173,8 +186,13 @@ export async function POST(req) {
     const recent = Array.isArray(history) ? history.slice(-10) : [];
 
     console.log("MARK C1: before buildDeterministicContext");
-    const det = buildDeterministicContext(problem || "", studentMessage || "");
-    console.log("MARK C2: after buildDeterministicContext", det?.supported, det?.error, det?.version);
+    const det = buildDeterministicContext(problem || "", mathInput);
+    console.log(
+      "MARK C2: after buildDeterministicContext",
+      det?.supported,
+      det?.error,
+      det?.version,
+    );
 
     if (!det.supported) {
       return Response.json({
@@ -186,12 +204,21 @@ export async function POST(req) {
     }
 
     const deterministicResponse = buildDeterministicResponse(det);
-    if (deterministicResponse) {
+
+    if (
+      deterministicResponse &&
+      det.stepVerdict?.kind !== "UNKNOWN" &&
+      intent.kind !== "help_request" &&
+      intent.kind !== "explanation_request"
+    ) {
       return Response.json(deterministicResponse);
     }
 
     if (!apiKey) {
-      return Response.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
+      return Response.json(
+        { error: "Missing OPENAI_API_KEY" },
+        { status: 500 },
+      );
     }
 
     const system = `
@@ -217,6 +244,7 @@ OUTPUT RULES (MANDATORY):
     const userPayload = {
       problem: problem || "",
       studentMessage: studentMessage || "",
+      intent,
       history: recent,
       deterministic: det,
     };
@@ -253,12 +281,15 @@ OUTPUT RULES (MANDATORY):
       userPayload.validation_error = lastReason;
     }
 
-    return Response.json({ error: `Tutor failed validation: ${lastReason}` }, { status: 500 });
+    return Response.json(
+      { error: `Tutor failed validation: ${lastReason}` },
+      { status: 500 },
+    );
   } catch (error) {
     console.error("Tutor API error:", error);
     return Response.json(
       { error: error?.message || String(error) || "Server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
