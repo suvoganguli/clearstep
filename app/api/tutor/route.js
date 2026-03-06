@@ -2,14 +2,12 @@ import OpenAI from "openai";
 import { loadPolicyText } from "@/lib/policyLoader";
 import { validateTutorJSON } from "@/lib/schemaValidator";
 import { normalizeEquationText } from "@/lib/algebra/common/textNormalize";
-
 import { tryParseLinear, solveLinearFor, checkNextStepFor } from "@/lib/algebra/linear";
 
 function buildDeterministicContext(problem, studentMessage) {
   try {
     const normalized = normalizeEquationText(problem || "");
     const { version, parsed } = tryParseLinear(normalized);
-
     const solved = solveLinearFor(version, parsed);
     const stepVerdict = checkNextStepFor(version, studentMessage || "", solved);
 
@@ -22,7 +20,6 @@ function buildDeterministicContext(problem, studentMessage) {
       solved,
       stepVerdict,
     };
-
   } catch (e) {
     return {
       supported: false,
@@ -31,8 +28,133 @@ function buildDeterministicContext(problem, studentMessage) {
   }
 }
 
-export async function POST(req) {
+function formatAx(a) {
+  if (a === 1) return "x";
+  if (a === -1) return "-x";
+  return `${a}x`;
+}
 
+function buildDeterministicResponse(det) {
+  const verdict = det?.stepVerdict;
+  const solved = det?.solved;
+
+  if (!verdict || !solved) return null;
+
+  const axForm = `${formatAx(solved.a)} = ${solved.rhsAfterSubtract}`;
+
+  switch (verdict.kind) {
+    case "FINAL_CORRECT":
+      return {
+        response_type: "DONE",
+        hint_level: 0,
+        content: "Correct. Want to try a new problem?",
+      };
+
+    case "FINAL_INCORRECT":
+      return {
+        response_type: "FEEDBACK",
+        hint_level: 1,
+        content: "Not quite. Check your arithmetic and solve for x carefully.",
+      };
+
+    case "STEP_CORRECT":
+      if (verdict.stage === "ARITHMETIC_OK") {
+        return {
+          response_type: "FEEDBACK",
+          hint_level: 1,
+          content: `Nice. ${solved.rhsAfterSubtract} is correct. Now write the equation as ${axForm}.`,
+        };
+      }
+
+      if (verdict.stage === "ISOLATED_AX") {
+        return {
+          response_type: "FEEDBACK",
+          hint_level: 1,
+          content: `Good. Now divide both sides by ${solved.a} to isolate x.`,
+        };
+      }
+
+      return {
+        response_type: "FEEDBACK",
+        hint_level: 1,
+        content: "Good step. Keep going.",
+      };
+
+    case "STEP_INCORRECT":
+      if (typeof verdict.expected === "number") {
+        return {
+          response_type: "HINT",
+          hint_level: 2,
+          content: "Check the result after combining the numbers on the right side.",
+        };
+      }
+
+      return {
+        response_type: "HINT",
+        hint_level: 2,
+        content: `Close, but that step is not correct. After simplifying, you should get ${axForm}.`,
+      };
+
+    case "STEP_HINT":
+      if (verdict.stage === "SUBTRACT_B") {
+        if (solved.b > 0) {
+          return {
+            response_type: "HINT",
+            hint_level: 1,
+            content: `Yes. Subtract ${solved.b} from both sides.`,
+          };
+        }
+
+        if (solved.b < 0) {
+          return {
+            response_type: "HINT",
+            hint_level: 1,
+            content: `Yes. Add ${Math.abs(solved.b)} to both sides.`,
+          };
+        }
+
+        return {
+          response_type: "HINT",
+          hint_level: 1,
+          content: `There is no constant term to remove. Go straight to dividing by ${solved.a}.`,
+        };
+      }
+
+      if (verdict.stage === "DIVIDE_BY_A") {
+        return {
+          response_type: "HINT",
+          hint_level: 1,
+          content: `Yes. Divide both sides by ${solved.a}.`,
+        };
+      }
+
+      if (verdict.stage === "DIVIDE_BY_WHAT") {
+        return {
+          response_type: "HINT",
+          hint_level: 2,
+          content: `Divide by the coefficient of x, which is ${solved.a}.`,
+        };
+      }
+
+      return {
+        response_type: "HINT",
+        hint_level: 2,
+        content: "Think about the operation that will isolate x.",
+      };
+
+    case "UNKNOWN":
+      return {
+        response_type: "QUESTION",
+        hint_level: 1,
+        content: "Enter just your next algebra step, like subtract 5, 3x = 15, or x = 5.",
+      };
+
+    default:
+      return null;
+  }
+}
+
+export async function POST(req) {
   console.log("MARK A: entered POST");
 
   try {
@@ -44,35 +166,31 @@ export async function POST(req) {
 
     const apiKey = process.env.OPENAI_API_KEY;
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
-    if (!apiKey) return Response.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
 
     const policyText = loadPolicyText();
     const recent = Array.isArray(history) ? history.slice(-10) : [];
 
-    // Deterministic engine first
     console.log("MARK C1: before buildDeterministicContext");
     const det = buildDeterministicContext(problem || "", studentMessage || "");
     console.log("MARK C2: after buildDeterministicContext", det?.supported, det?.error, det?.version);
 
-    const k = det?.stepVerdict?.kind;
-
-    if (k === "STEP1_RESULT_CORRECT") {
+    if (!det.supported) {
       return Response.json({
-        response_type: "FEEDBACK",
-        hint_level: 1,
-        content: `Nice. Now you have ${det.solved.a}x = ${det.solved.c - det.solved.b}. What should you do next to isolate x?`,
-      });
-    }
-
-    if (k === "FINAL_CORRECT") {
-
-      return Response.json({
-        response_type: "DONE",
+        response_type: "REFUSAL",
         hint_level: 0,
-        content: "✅ Correct. Want to try a new problem?",
+        content:
+          "I can currently help with linear equations of the form ax + b = c where the solution for x is an integer, for example 3x + 5 = 20.",
       });
     }
 
+    const deterministicResponse = buildDeterministicResponse(det);
+    if (deterministicResponse) {
+      return Response.json(deterministicResponse);
+    }
+
+    if (!apiKey) {
+      return Response.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
+    }
 
     const system = `
 You are ClearStep, a math coach for middle-school algebra.
@@ -100,16 +218,6 @@ OUTPUT RULES (MANDATORY):
       history: recent,
       deterministic: det,
     };
-
-    // If unsupported, we can safely refuse (or ask for reformat)
-    if (!det.supported) {
-      return Response.json({
-        response_type: "REFUSAL",
-        hint_level: 0,
-        content:
-          "I can currently help with linear equations of the form ax + b = c where the solution for x is an integer (for example: 3x + 5 = 20). Please try another problem.",
-      });
-    }
 
     const client = new OpenAI({ apiKey });
 
@@ -144,11 +252,11 @@ OUTPUT RULES (MANDATORY):
     }
 
     return Response.json({ error: `Tutor failed validation: ${lastReason}` }, { status: 500 });
-} catch (error) {
-  console.error("Tutor API error:", error);
-  return Response.json(
-    { error: error?.message || String(error) || "Server error" },
-    { status: 500 }
-  );
-}
+  } catch (error) {
+    console.error("Tutor API error:", error);
+    return Response.json(
+      { error: error?.message || String(error) || "Server error" },
+      { status: 500 }
+    );
+  }
 }
