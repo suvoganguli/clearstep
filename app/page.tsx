@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 type ChatMessage = {
   role: "student" | "tutor";
   content: string;
+  finalCorrect?: boolean;
 };
 
 
@@ -114,7 +115,14 @@ export default function Home() {
           ? data.content
           : "I didn’t understand that. Try again.";
 
-      setMessages((prev) => [...prev, { role: "tutor", content: tutorText }]);
+      setMessages((prev) => [
+      ...prev,
+      {
+        role: "tutor",
+        content: tutorText,
+        finalCorrect: data?.final_correct === true,
+      },
+    ]);
     } catch {
       setErrorText("Network error.");
       setMessages((prev) => [
@@ -310,6 +318,28 @@ export default function Home() {
                 <div style={{ fontSize: "12px", opacity: 0.75, marginBottom: "4px" }}>
                   {isStudent ? nickname : "Tutor"}
                 </div>
+
+                {m.finalCorrect && (
+                  <div
+                    style={{
+                      width: "42px",
+                      height: "42px",
+                      background: "#22c55e",
+                      borderRadius: "10px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: "6px",
+                      boxShadow: "0 3px 6px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    <span style={{ color: "white", fontSize: "24px", fontWeight: "bold" }}>
+                      ✓
+                    </span>
+                  </div>
+                )}
+
+
                 {m.content}
               </div>
             </div>

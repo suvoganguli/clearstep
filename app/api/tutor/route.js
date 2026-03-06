@@ -55,6 +55,7 @@ function buildDeterministicResponse(det) {
       return {
         response_type: "DONE",
         hint_level: 0,
+        final_correct: true,
         content: "Correct. Want to try a new problem?",
       };
 
@@ -78,7 +79,7 @@ function buildDeterministicResponse(det) {
         return {
           response_type: "FEEDBACK",
           hint_level: 1,
-          content: `Good. Now divide both sides by ${solved.a} to isolate x.`,
+          content: `Good. What operation will isolate x now?`,
         };
       }
 
