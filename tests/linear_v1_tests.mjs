@@ -1,5 +1,6 @@
 import { normalizeEquationText } from "../lib/algebra/common/textNormalize.js";
 import { tryParseLinear, solveLinearFor, checkNextStepFor } from "../lib/algebra/linear/index.js";
+import { canonicalizeLinearEquation } from "../lib/algebra/linear/index.js";
 
 function assert(condition, message) {
   if (!condition) {
@@ -19,12 +20,15 @@ function runTest(name, fn) {
 
 function build(problem, studentMessage = "") {
   const normalized = normalizeEquationText(problem);
-  const { version, parsed } = tryParseLinear(normalized);
+  const canonical = canonicalizeLinearEquation(normalized);
+
+  const { version, parsed } = tryParseLinear(canonical);
   const solved = solveLinearFor(version, parsed);
   const stepVerdict = checkNextStepFor(version, studentMessage, solved);
 
   return {
     normalized,
+    canonical,
     version,
     parsed,
     solved,
@@ -129,4 +133,28 @@ runTest("rejects fractional solution 2x+1=0", () => {
     failed = true;
   }
   assert(failed, "Expected fractional-solution problem to fail in v1");
+});
+
+
+// ----------------------
+// Canonicalization
+// ----------------------
+runTest("canonicalizes 3x + 5 = 20 unchanged", () => {
+  const result = canonicalizeLinearEquation("3x + 5 = 20");
+  assert(result === "3x + 5 = 20", `Expected canonical form unchanged, got ${result}`);
+});
+
+runTest("canonicalizes 5 + 3x = 20", () => {
+  const result = canonicalizeLinearEquation("5 + 3x = 20");
+  assert(result === "3x + 5 = 20", `Expected 3x + 5 = 20, got ${result}`);
+});
+
+runTest("canonicalizes flipped equation 20 = 3x + 5", () => {
+  const result = canonicalizeLinearEquation("20 = 3x + 5");
+  assert(result === "3x + 5 = 20", `Expected 3x + 5 = 20, got ${result}`);
+});
+
+runTest("canonicalizes flipped constant-first equation 20 = 5 + 3x", () => {
+  const result = canonicalizeLinearEquation("20 = 5 + 3x");
+  assert(result === "3x + 5 = 20", `Expected 3x + 5 = 20, got ${result}`);
 });

@@ -2,12 +2,13 @@ import OpenAI from "openai";
 import { loadPolicyText } from "@/lib/policyLoader";
 import { validateTutorJSON } from "@/lib/schemaValidator";
 import { normalizeEquationText } from "@/lib/algebra/common/textNormalize";
-import { tryParseLinear, solveLinearFor, checkNextStepFor } from "@/lib/algebra/linear";
+import { canonicalizeLinearEquation, tryParseLinear, solveLinearFor, checkNextStepFor } from "@/lib/algebra/linear";
 
 function buildDeterministicContext(problem, studentMessage) {
   try {
     const normalized = normalizeEquationText(problem || "");
-    const { version, parsed } = tryParseLinear(normalized);
+    const canonical = canonicalizeLinearEquation(normalized);
+    const { version, parsed } = tryParseLinear(canonical);
     const solved = solveLinearFor(version, parsed);
     const stepVerdict = checkNextStepFor(version, studentMessage || "", solved);
 
@@ -19,6 +20,7 @@ function buildDeterministicContext(problem, studentMessage) {
       parsed,
       solved,
       stepVerdict,
+      canonical,
     };
   } catch (e) {
     return {
@@ -146,7 +148,7 @@ function buildDeterministicResponse(det) {
       return {
         response_type: "QUESTION",
         hint_level: 1,
-        content: "Enter just your next algebra step, like subtract 5, 3x = 15, or x = 5.",
+        content: "What is the next algebra step you want to take?",
       };
 
     default:
