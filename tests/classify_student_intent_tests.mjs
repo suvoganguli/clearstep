@@ -57,3 +57,9 @@ runTest("classifies why subtract 5 as explanation_request", () => {
   assert(result.kind === "explanation_request", `Expected explanation_request, got ${result.kind}`);
   assert(result.extractedStep === "subtract 5", `Expected subtract 5, got ${result.extractedStep}`);
 });
+
+runTest("classifies do you subtract each side by 1 as tentative_step", () => {
+  const result = classifyStudentIntent("do you subtract each side by 1");
+  assert(result.kind === "tentative_step", `Expected tentative_step, got ${result.kind}`);
+  assert(result.extractedStep === "subtract 1", `Expected subtract 1, got ${result.extractedStep}`);
+});

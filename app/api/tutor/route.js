@@ -42,7 +42,7 @@ function formatAx(a) {
   return `${a}x`;
 }
 
-function buildDeterministicResponse(det) {
+function buildDeterministicResponse(det, intent) {
   const verdict = det?.stepVerdict;
   const solved = det?.solved;
 
@@ -107,34 +107,36 @@ function buildDeterministicResponse(det) {
 
     case "STEP_HINT":
       if (verdict.stage === "SUBTRACT_B") {
-        if (solved.b > 0) {
-          return {
-            response_type: "HINT",
-            hint_level: 1,
-            content: `Yes. Subtract ${solved.b} from both sides.`,
-          };
-        }
+      const isTentative = intent?.kind === "tentative_step";
 
-        if (solved.b < 0) {
-          return {
-            response_type: "HINT",
-            hint_level: 1,
-            content: `Yes. Add ${Math.abs(solved.b)} to both sides.`,
-          };
-        }
-
+      if (solved.b > 0) {
         return {
-          response_type: "HINT",
+          response_type: "FEEDBACK",
           hint_level: 1,
-          content: `There is no constant term to remove. Go straight to dividing by ${solved.a}.`,
+          content: `Yes — subtract ${solved.b} from both sides.`,
         };
       }
+
+      if (solved.b < 0) {
+        return {
+          response_type: "FEEDBACK",
+          hint_level: 1,
+          content: `Yes — add ${Math.abs(solved.b)} to both sides.`,
+        };
+      }
+
+      return {
+        response_type: "FEEDBACK",
+        hint_level: 1,
+        content: `Yes — there is no constant term to remove first.`,
+      };
+    }
 
       if (verdict.stage === "DIVIDE_BY_A") {
         return {
           response_type: "HINT",
           hint_level: 1,
-          content: `Yes. Divide both sides by ${solved.a}.`,
+          content: `Good. So what value does that give for x?`,
         };
       }
 
@@ -204,7 +206,25 @@ export async function POST(req) {
       });
     }
 
-    const deterministicResponse = buildDeterministicResponse(det);
+    // If the student already produced the final value, confirm without LLM
+    if (
+      intent.kind === "direct_step" &&
+      typeof intent.extractedStep === "string" &&
+      /^[+-]?\d+$/.test(intent.extractedStep)
+    ) {
+      const expected = det.solved?.solution;
+
+      if (expected !== undefined && Number(intent.extractedStep) === expected) {
+        return Response.json({
+          response_type: "DONE",
+          hint_level: 0,
+          final_correct: true,
+          content: `Yes — x = ${expected}. Great work.`,
+        });
+      }
+    }
+
+    const deterministicResponse = buildDeterministicResponse(det, intent);
 
     if (
       deterministicResponse &&
