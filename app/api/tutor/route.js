@@ -106,6 +106,41 @@ function buildDeterministicResponse(det, intent) {
       };
 
     case "STEP_HINT":
+
+      if (verdict.stage === "MOVE_X_TERMS") {
+        const n = solved.rightXCoeff;
+
+        if (n === 1) {
+          return {
+            response_type: "FEEDBACK",
+            hint_level: 1,
+            content: "Yes — subtract x from both sides.",
+          };
+        }
+
+        if (n === -1) {
+          return {
+            response_type: "FEEDBACK",
+            hint_level: 1,
+            content: "Yes — add x to both sides.",
+          };
+        }
+
+        if (n > 0) {
+          return {
+            response_type: "FEEDBACK",
+            hint_level: 1,
+            content: `Yes — subtract ${n}x from both sides.`,
+          };
+        }
+
+        return {
+          response_type: "FEEDBACK",
+          hint_level: 1,
+          content: `Yes — add ${Math.abs(n)}x to both sides.`,
+        };
+      }
+
       if (verdict.stage === "SUBTRACT_B") {
       const isTentative = intent?.kind === "tentative_step";
 

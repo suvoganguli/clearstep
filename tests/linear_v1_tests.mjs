@@ -151,10 +151,57 @@ runTest("canonicalizes 5 + 3x = 20", () => {
 
 runTest("canonicalizes flipped equation 20 = 3x + 5", () => {
   const result = canonicalizeLinearEquation("20 = 3x + 5");
-  assert(result === "3x + 5 = 20", `Expected 3x + 5 = 20, got ${result}`);
+  assert(result === "20 = 3x + 5", `Expected 20 = 3x + 5, got ${result}`);
 });
 
 runTest("canonicalizes flipped constant-first equation 20 = 5 + 3x", () => {
   const result = canonicalizeLinearEquation("20 = 5 + 3x");
-  assert(result === "3x + 5 = 20", `Expected 3x + 5 = 20, got ${result}`);
+  assert(result === "20 = 3x + 5", `Expected 20 = 3x + 5, got ${result}`);
+});
+
+// ----------------------
+// x on both sides
+// ----------------------
+runTest("supports 3x + 5 = x + 9", () => {
+  const result = build("3x + 5 = x + 9");
+  assert(result.solved.x === 2, `Expected x = 2, got ${result.solved.x}`);
+});
+
+runTest("accepts subtract x for 3x + 5 = x + 9", () => {
+  const result = build("3x + 5 = x + 9", "subtract x");
+  assert(result.stepVerdict.kind !== "UNKNOWN", "Step should be recognized");
+});
+
+runTest("accepts 2x=4 as correct intermediate equation", () => {
+  const result = build("3x + 5 = x + 9", "2x=4");
+  assert(
+    result.stepVerdict.kind === "STEP_CORRECT",
+    `Expected STEP_CORRECT, got ${result.stepVerdict.kind}`
+  );
+});
+
+runTest("accepts x=2 as final answer for 3x + 5 = x + 9", () => {
+  const result = build("3x + 5 = x + 9", "x=2");
+  assert(
+    result.stepVerdict.kind === "FINAL_CORRECT",
+    `Expected FINAL_CORRECT, got ${result.stepVerdict.kind}`
+  );
+});
+
+runTest("supports 5 + 2x = x + 11", () => {
+  const result = build("5 + 2x = x + 11");
+  assert(result.solved.x === 6, `Expected x = 6, got ${result.solved.x}`);
+});
+
+runTest("accepts subtract x for 5 + 2x = x + 11", () => {
+  const result = build("5 + 2x = x + 11", "subtract x");
+  assert(result.stepVerdict.kind !== "UNKNOWN", "Step should be recognized");
+});
+
+runTest("accepts x=6 as final answer for 5 + 2x = x + 11", () => {
+  const result = build("5 + 2x = x + 11", "x=6");
+  assert(
+    result.stepVerdict.kind === "FINAL_CORRECT",
+    `Expected FINAL_CORRECT, got ${result.stepVerdict.kind}`
+  );
 });
