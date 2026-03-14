@@ -1,0 +1,60 @@
+steps:
+  - id: subtract_constant
+    description: Student subtracts a numeric constant from both sides.
+    examples:
+      - subtract 5
+      - minus 5
+      - take away 5
+      - subtract five from both sides
+
+  - id: add_constant
+    description: Student adds a numeric constant to both sides.
+    examples:
+      - add 3
+      - plus 3
+      - add three to both sides
+
+  - id: move_x_term
+    description: Student moves an x term across the equals sign.
+    examples:
+      - move x to the other side
+      - subtract x from both sides
+      - bring the x term over
+      - move 3x to the left
+
+  - id: divide_by_coefficient
+    description: Student divides both sides by the coefficient of x.
+    examples:
+      - divide by 3
+      - divide everything by 3
+      - split by 3
+      - divide both sides by 2
+
+  - id: multiply_by_coefficient
+    description: Student multiplies both sides by a number.
+    examples:
+      - multiply by 2
+      - times 2
+      - multiply both sides by 4
+
+  - id: state_intermediate_equation
+    description: Student states a transformed equation.
+    examples:
+      - 3x = 15
+      - 2x + 4 = 10
+      - x + 7 = 12
+
+  - id: state_final_answer
+    description: Student states the final value of x.
+    examples:
+      - x = 5
+      - x is 5
+      - 5
+
+  - id: ask_for_help
+    description: Student asks for a hint or help.
+    examples:
+      - help
+      - I don't know
+      - can you give me a hint
+      - what do I do next

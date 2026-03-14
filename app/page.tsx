@@ -8,9 +8,7 @@ type ChatMessage = {
   finalCorrect?: boolean;
 };
 
-
 export default function Home() {
-
   const [isDone, setIsDone] = useState(false);
 
   // ---- Login / session info
@@ -28,6 +26,9 @@ export default function Home() {
   // ---- Auto-scroll
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
+  // ---- Problem State
+  const [problemState, setProblemState] = useState<any>(null);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -41,7 +42,6 @@ export default function Home() {
     setIsDone(false);
   }, [problem]);
 
-
   const canStart = useMemo(() => {
     return classCode.trim().length > 0 && nickname.trim().length > 0;
   }, [classCode, nickname]);
@@ -50,25 +50,25 @@ export default function Home() {
     const msg = studentInput.trim();
     if (!msg) return;
 
-  // ---- Step B: if problem finished, allow "yes/new" to reset
-  if (isDone) {
-    const m = msg.toLowerCase();
+    // ---- Step B: if problem finished, allow "yes/new" to reset
+    if (isDone) {
+      const m = msg.toLowerCase();
 
-    const wantsNew =
-      m === "yes" ||
-      m === "y" ||
-      m === "new" ||
-      m === "new problem" ||
-      m === "another" ||
-      m === "another one" ||
-      m === "next";
+      const wantsNew =
+        m === "yes" ||
+        m === "y" ||
+        m === "new" ||
+        m === "new problem" ||
+        m === "another" ||
+        m === "another one" ||
+        m === "next";
 
-    if (wantsNew) {
-      setStudentInput("");
-      newProblem();
-      return;
+      if (wantsNew) {
+        setStudentInput("");
+        newProblem();
+        return;
+      }
     }
-  }
 
     setErrorText(null);
 
@@ -78,7 +78,6 @@ export default function Home() {
     setMessages(nextMessages);
     setStudentInput("");
     setLoading(true);
-    
 
     try {
       const res = await fetch("/api/tutor", {
@@ -87,6 +86,7 @@ export default function Home() {
         body: JSON.stringify({
           problem,
           studentMessage: msg,
+          state: problemState,
           history: nextMessages.map((m) => ({
             role: m.role === "student" ? "user" : "assistant",
             content: m.content,
@@ -95,17 +95,24 @@ export default function Home() {
         }),
       });
 
-      
       const data = await res.json();
-      if (data.response_type === "DONE") {
-       setIsDone(true);
+      if (data.problemState) {
+        setProblemState(data.problemState);
+      }
+      const solved = data?.status === "solved";
+
+      if (solved) {
+        setIsDone(true);
       }
 
       if (!res.ok) {
         setErrorText(data?.error || "Server error.");
         setMessages((prev) => [
           ...prev,
-          { role: "tutor", content: "Sorry — something went wrong on the server." },
+          {
+            role: "tutor",
+            content: "Sorry — something went wrong on the server.",
+          },
         ]);
         return;
       }
@@ -115,14 +122,18 @@ export default function Home() {
           ? data.content
           : "I didn’t understand that. Try again.";
 
+      const finalTutorText = solved
+        ? `${tutorText}\n\nWould you like to try a new problem? Type yes to continue.`
+        : tutorText;
+
       setMessages((prev) => [
-      ...prev,
-      {
-        role: "tutor",
-        content: tutorText,
-        finalCorrect: data?.final_correct === true,
-      },
-    ]);
+        ...prev,
+        {
+          role: "tutor",
+          content: finalTutorText,
+          finalCorrect: solved,
+        },
+      ]);
     } catch {
       setErrorText("Network error.");
       setMessages((prev) => [
@@ -147,6 +158,7 @@ export default function Home() {
     setErrorText(null);
     setLoading(false);
     setIsDone(false);
+    setProblemState(null);
   }
 
   // ---- Screen 1: Class Code + Nickname
@@ -156,12 +168,14 @@ export default function Home() {
         <h1 style={{ fontSize: "32px", marginBottom: "10px" }}>ClearStep</h1>
 
         <p style={{ marginBottom: "30px", maxWidth: "640px" }}>
-          An interactive math reasoning coach that guides students step-by-step without giving away
-          full solutions.
+          An interactive math reasoning coach that guides students step-by-step
+          without giving away full solutions.
         </p>
 
         <div style={{ maxWidth: "420px" }}>
-          <label style={{ display: "block", marginBottom: "6px" }}>Class Code</label>
+          <label style={{ display: "block", marginBottom: "6px" }}>
+            Class Code
+          </label>
           <input
             type="text"
             value={classCode}
@@ -176,7 +190,9 @@ export default function Home() {
             }}
           />
 
-          <label style={{ display: "block", marginBottom: "6px" }}>Nickname</label>
+          <label style={{ display: "block", marginBottom: "6px" }}>
+            Nickname
+          </label>
           <input
             type="text"
             value={nickname}
@@ -213,12 +229,30 @@ export default function Home() {
 
   // ---- Screen 2: Tutor chat
   return (
-    <main style={{ padding: "24px", fontFamily: "Arial, sans-serif", maxWidth: "980px", margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "16px" }}>
+    <main
+      style={{
+        padding: "24px",
+        fontFamily: "Arial, sans-serif",
+        maxWidth: "980px",
+        margin: "0 auto",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: "16px",
+        }}
+      >
         <h1 style={{ fontSize: "28px", margin: 0 }}>ClearStep</h1>
         <div style={{ color: "#555" }}>
-          <span style={{ marginRight: "12px" }}>Class: <b>{classCode}</b></span>
-          <span>User: <b>{nickname}</b></span>
+          <span style={{ marginRight: "12px" }}>
+            Class: <b>{classCode}</b>
+          </span>
+          <span>
+            User: <b>{nickname}</b>
+          </span>
         </div>
       </div>
 
@@ -230,13 +264,14 @@ export default function Home() {
           gap: "10px",
         }}
       >
-
         <button
           onClick={() => {
             setMessages([]);
             setStudentInput("");
             setErrorText(null);
             setLoading(false);
+            setIsDone(false);
+            setProblemState(null);
           }}
           style={{
             marginTop: "6px",
@@ -268,12 +303,10 @@ export default function Home() {
         />
 
         <div style={{ color: "#666", fontSize: "13px" }}>
-          Phase 1 supports linear equations like <code>ax + b = c</code> with integers.
+          Phase 1 supports linear equations like <code>ax + b = c</code> with
+          integers.
         </div>
-
       </div>
-
-
 
       <div
         style={{
@@ -288,7 +321,8 @@ export default function Home() {
       >
         {messages.length === 0 ? (
           <div style={{ color: "#666" }}>
-            Type your first step below. Example: <code>subtract 5</code> or <code>15</code>.
+            Type your first step below. Example: <code>subtract 5</code> or{" "}
+            <code>15</code>.
           </div>
         ) : null}
 
@@ -315,7 +349,13 @@ export default function Home() {
                   lineHeight: 1.35,
                 }}
               >
-                <div style={{ fontSize: "12px", opacity: 0.75, marginBottom: "4px" }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    opacity: 0.75,
+                    marginBottom: "4px",
+                  }}
+                >
                   {isStudent ? nickname : "Tutor"}
                 </div>
 
@@ -333,12 +373,17 @@ export default function Home() {
                       boxShadow: "0 3px 6px rgba(0,0,0,0.15)",
                     }}
                   >
-                    <span style={{ color: "white", fontSize: "24px", fontWeight: "bold" }}>
+                    <span
+                      style={{
+                        color: "white",
+                        fontSize: "24px",
+                        fontWeight: "bold",
+                      }}
+                    >
                       ✓
                     </span>
                   </div>
                 )}
-
 
                 {m.content}
               </div>
@@ -347,7 +392,13 @@ export default function Home() {
         })}
 
         {loading ? (
-          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "10px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              marginBottom: "10px",
+            }}
+          >
             <div
               style={{
                 maxWidth: "75%",
@@ -358,7 +409,11 @@ export default function Home() {
                 color: "#111",
               }}
             >
-              <div style={{ fontSize: "12px", opacity: 0.75, marginBottom: "4px" }}>Tutor</div>
+              <div
+                style={{ fontSize: "12px", opacity: 0.75, marginBottom: "4px" }}
+              >
+                Tutor
+              </div>
               Thinking…
             </div>
           </div>
@@ -368,9 +423,7 @@ export default function Home() {
       </div>
 
       {errorText ? (
-        <div style={{ marginTop: "10px", color: "#b00020" }}>
-          {errorText}
-        </div>
+        <div style={{ marginTop: "10px", color: "#b00020" }}>{errorText}</div>
       ) : null}
 
       <div style={{ marginTop: "14px", display: "flex", gap: "10px" }}>

@@ -1,0 +1,15 @@
+llm_thresholds:
+  high_confidence: 0.8
+  medium_confidence: 0.55
+
+behavior:
+  high_confidence: accept_step
+  medium_confidence: confirm_step
+  low_confidence: recovery_prompt
+
+confirmation:
+  enabled: true
+  max_pending_turns: 1
+
+logging:
+  max_problem_logs: 3
