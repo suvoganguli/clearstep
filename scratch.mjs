@@ -1,26 +1,16 @@
-import {
-  createProblemState,
-  createProblemLog,
-  processStudentTurn,
-} from "./lib/tutor/index.js";
+import { loadPolicyConfig } from "./lib/tutor/config/loadPolicyConfig.js";
+import { loadStepsConfig } from "./lib/tutor/config/loadStepsConfig.js";
+import { routeStudentStep } from "./lib/tutor/routing/routeStudentStep.js";
+import { llmStepMatcher } from "./lib/tutor/routing/llmStepMatcher.js";
 
-let state = createProblemState("3x + 5 = 20");
-createProblemLog(state);
+const policyConfig = loadPolicyConfig();
+const stepsConfig = loadStepsConfig();
 
-let result = await processStudentTurn({
-  problemState: state,
-  studentText: "subtract 5",
+const result = await routeStudentStep({
+  studentText: "maybe remove the 5?",
+  policyConfig,
+  stepsConfig,
+  llmStepMatcher,
 });
 
-console.log(result.mathResult);
-console.log(result.problemState.currentEquation);
-
-state = result.problemState;
-
-result = await processStudentTurn({
-  problemState: state,
-  studentText: "divide by 3",
-});
-
-console.log(result.mathResult);
-console.log(result.problemState.currentEquation);
+console.log(result);
