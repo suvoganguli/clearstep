@@ -1,12 +1,23 @@
-import { llmStepMatcher } from "./lib/tutor/routing/llmStepMatcher.js";
-import { loadStepsConfig } from "./lib/tutor/config/loadStepsConfig.js";
+import {
+  createProblemState,
+  createProblemLog,
+  processStudentTurn,
+} from "./lib/tutor/index.js";
 
-const stepsConfig = loadStepsConfig();
+let state = createProblemState("3x + 5 = 20");
+createProblemLog(state);
 
-console.time("first");
-console.log(await llmStepMatcher("get rid of the 5", stepsConfig));
-console.timeEnd("first");
+state.awaitingConfirmation = {
+  source: "llm",
+  stepType: "subtract_constant",
+  valueRaw: "5",
+  confidence: 0.7,
+  rawText: "maybe remove the 5?",
+};
 
-console.time("second");
-console.log(await llmStepMatcher("get rid of the 5", stepsConfig));
-console.timeEnd("second");
+const result = await processStudentTurn({
+  problemState: state,
+  studentText: "no",
+});
+
+console.log(result.reply);
