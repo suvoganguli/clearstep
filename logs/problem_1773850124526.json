@@ -1,0 +1,52 @@
+{
+  "problemId": "problem_1773850124526",
+  "originalEquation": "4x + 5 = 20 + x",
+  "currentEquation": "3x+5=20",
+  "status": "active",
+  "awaitingConfirmation": null,
+  "helpContext": null,
+  "history": [
+    {
+      "studentText": "subtract 2x",
+      "route": "accept_step",
+      "stepType": "move_x_term",
+      "valueRaw": "2x",
+      "accepted": true,
+      "mathResult": {
+        "kind": "STEP_HINT",
+        "stage": "MOVE_X_TERMS",
+        "n": 1
+      }
+    }
+  ],
+  "algebra": {
+    "version": "v1",
+    "parsed": {
+      "left": {
+        "xCoeff": 4,
+        "constant": 5
+      },
+      "right": {
+        "xCoeff": 1,
+        "constant": 20
+      }
+    },
+    "solved": {
+      "left": {
+        "xCoeff": 4,
+        "constant": 5
+      },
+      "right": {
+        "xCoeff": 1,
+        "constant": 20
+      },
+      "a": 3,
+      "b": 5,
+      "c": 20,
+      "rhsAfterSubtract": 15,
+      "x": 5,
+      "rightXCoeff": 1,
+      "leftConstant": 5
+    }
+  }
+}
