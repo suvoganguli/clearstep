@@ -362,3 +362,15 @@ runTest("rejects add x for 4x + 5 = 20 + x", () => {
     `Expected 'subtract x', got ${result.stepVerdict.expected}`
   );
 });
+
+runTest("rejects add x for 4x + 5 = 20 + x", () => {
+  const result = build("4x + 5 = 20 + x", "add x");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract x",
+    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+  );
+});
