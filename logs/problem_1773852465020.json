@@ -1,0 +1,51 @@
+{
+  "problemId": "problem_1773852465020",
+  "originalEquation": "4x + 5 = 20 + x",
+  "currentEquation": "4x + 5 = 20 + x",
+  "status": "active",
+  "awaitingConfirmation": null,
+  "helpContext": null,
+  "history": [
+    {
+      "studentText": "subtract 7",
+      "route": "accept_step",
+      "stepType": "subtract_constant",
+      "valueRaw": "7",
+      "accepted": false,
+      "mathResult": {
+        "kind": "STEP_INCORRECT",
+        "expected": "subtract 5"
+      }
+    }
+  ],
+  "algebra": {
+    "version": "v1",
+    "parsed": {
+      "left": {
+        "xCoeff": 4,
+        "constant": 5
+      },
+      "right": {
+        "xCoeff": 1,
+        "constant": 20
+      }
+    },
+    "solved": {
+      "left": {
+        "xCoeff": 4,
+        "constant": 5
+      },
+      "right": {
+        "xCoeff": 1,
+        "constant": 20
+      },
+      "a": 3,
+      "b": 5,
+      "c": 20,
+      "rhsAfterSubtract": 15,
+      "x": 5,
+      "rightXCoeff": 1,
+      "leftConstant": 5
+    }
+  }
+}
