@@ -205,3 +205,160 @@ runTest("accepts x=6 as final answer for 5 + 2x = x + 11", () => {
     `Expected FINAL_CORRECT, got ${result.stepVerdict.kind}`
   );
 });
+
+// ----------------------
+// Negative step validation
+// ----------------------
+runTest("rejects subtract 2x for 3x + 5 = x + 9", () => {
+  const result = build("3x + 5 = x + 9", "subtract 2x");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract x",
+    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+  );
+});
+
+runTest("rejects subtract 5x for 3x + 5 = x + 9", () => {
+  const result = build("3x + 5 = x + 9", "subtract 5x");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract x",
+    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+  );
+});
+
+runTest("rejects add 2x for 3x + 5 = x + 9", () => {
+  const result = build("3x + 5 = x + 9", "add 2x");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract x",
+    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+  );
+});
+
+runTest("rejects subtract 5x for 4x + 5 = 20 + x", () => {
+  const result = build("4x + 5 = 20 + x", "subtract 5x");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract x",
+    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+  );
+});
+
+runTest("accepts subtract x for 4x + 5 = 20 + x", () => {
+  const result = build("4x + 5 = 20 + x", "subtract x");
+  assert(
+    result.stepVerdict.kind === "STEP_HINT",
+    `Expected STEP_HINT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.stage === "MOVE_X_TERMS",
+    `Expected MOVE_X_TERMS, got ${result.stepVerdict.stage}`
+  );
+});
+
+runTest("rejects subtract 3x for 5 + 2x = x + 11", () => {
+  const result = build("5 + 2x = x + 11", "subtract 3x");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract x",
+    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+  );
+});
+
+runTest("rejects subtract 4 for 3x + 5 = 20", () => {
+  const result = build("3x + 5 = 20", "subtract 4");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract 5",
+    `Expected 'subtract 5', got ${result.stepVerdict.expected}`
+  );
+});
+
+runTest("accepts divide by 3 after 3x + 5 = 20 reaches ax stage", () => {
+  const result = build("3x + 5 = 20", "divide by 3");
+  assert(
+    result.stepVerdict.kind === "STEP_HINT",
+    `Expected STEP_HINT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.stage === "DIVIDE_BY_A",
+    `Expected DIVIDE_BY_A, got ${result.stepVerdict.stage}`
+  );
+});
+
+runTest("redirects wrong divide choice for 3x + 5 = 20", () => {
+  const result = build("3x + 5 = 20", "divide by 5");
+  assert(
+    result.stepVerdict.kind === "STEP_HINT",
+    `Expected STEP_HINT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.stage === "DIVIDE_BY_WHAT",
+    `Expected DIVIDE_BY_WHAT, got ${result.stepVerdict.stage}`
+  );
+});
+
+runTest("rejects wrong intermediate equation 3x=14 for 3x + 5 = 20", () => {
+  const result = build("3x + 5 = 20", "3x=14");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+});
+
+runTest("rejects wrong intermediate equation 2x=5 for 3x + 5 = x + 9", () => {
+  const result = build("3x + 5 = x + 9", "2x=5");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+});
+
+runTest("rejects wrong bare number 4 for 3x + 5 = 20", () => {
+  const result = build("3x + 5 = 20", "4");
+  assert(
+    result.stepVerdict.kind !== "FINAL_CORRECT",
+    `Did not expect FINAL_CORRECT for wrong bare number`
+  );
+});
+
+runTest("supports 20 + x = 4x + 5", () => {
+  const result = build("20 + x = 4x + 5");
+  assert(result.solved.x === 5, `Expected x = 5, got ${result.solved.x}`);
+});
+
+runTest("supports 9 + x = 5 + 3x", () => {
+  const result = build("9 + x = 5 + 3x");
+  assert(result.solved.x === 2, `Expected x = 2, got ${result.solved.x}`);
+});
+
+runTest("rejects add x for 4x + 5 = 20 + x", () => {
+  const result = build("4x + 5 = 20 + x", "add x");
+  assert(
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+  );
+  assert(
+    result.stepVerdict.expected === "subtract x",
+    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+  );
+});
