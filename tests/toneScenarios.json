@@ -1,0 +1,115 @@
+[
+  {
+    "name": "general_help_then_hint",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "what should i do?",
+      "i dont know"
+    ]
+  },
+  {
+    "name": "help_question_correct_step",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "do i subtract 5?"
+    ]
+  },
+  {
+    "name": "help_question_wrong_step",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "should i divide by 3?"
+    ]
+  },
+  {
+    "name": "normal_step_correct",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "subtract 5"
+    ]
+  },
+  {
+    "name": "intermediate_equation",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "3x = 15"
+    ]
+  },
+  {
+    "name": "final_answer_correct",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "subtract 5",
+      "3x = 15",
+      "divide by 3",
+      "x = 5"
+    ]
+  },
+  {
+    "name": "final_answer_as_question",
+    "problem": "3x = 15",
+    "turns": [
+      "is x = 5?"
+    ]
+  },
+  {
+    "name": "vague_student_language",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "get rid of the 5"
+    ]
+  },
+  {
+    "name": "typo_help_question",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "do i subtrct 5?"
+    ]
+  },
+  {
+    "name": "declined_confirmation",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "maybe remove the 5?",
+      "no"
+    ]
+  },
+  {
+    "name": "wrong_step_then_recovery",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "subtract 6",
+      "subtract 5"
+    ]
+  },
+  {
+    "name": "two_sided_move_x",
+    "problem": "3x + 5 = x + 9",
+    "turns": [
+      "do i subtract x?"
+    ]
+  },
+  {
+    "name": "two_sided_wrong_move",
+    "problem": "3x + 5 = x + 9",
+    "turns": [
+      "should i divide by 3?"
+    ]
+  },
+  {
+    "name": "bare_number_final",
+    "problem": "3x = 15",
+    "turns": [
+      "5"
+    ]
+  },
+  {
+    "name": "repeat_help",
+    "problem": "3x + 5 = 20",
+    "turns": [
+      "help",
+      "what should i do?",
+      "i dont know"
+    ]
+  }
+]

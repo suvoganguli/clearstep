@@ -1,13 +1,26 @@
 {
-  "problemId": "problem_1773501390429",
+  "problemId": "problem_1773948571944",
   "originalEquation": "3x + 5 = 20",
   "currentEquation": "3x=15",
-  "status": "solved",
+  "status": "active",
   "awaitingConfirmation": null,
+  "helpContext": null,
   "history": [
     {
-      "studentText": "subtract 5",
-      "route": "accept_step",
+      "studentText": "subtract 5?",
+      "route": "help_question",
+      "stepType": "subtract_constant",
+      "valueRaw": "5",
+      "accepted": false,
+      "mathResult": {
+        "kind": "STEP_HINT",
+        "stage": "SUBTRACT_B",
+        "b": 5
+      }
+    },
+    {
+      "studentText": "subtract 5?",
+      "route": "help_question",
       "stepType": "subtract_constant",
       "valueRaw": "5",
       "accepted": true,
@@ -30,25 +43,25 @@
       }
     },
     {
-      "studentText": "divide by 3",
+      "studentText": "dive by five",
       "route": "accept_step",
       "stepType": "divide_by_coefficient",
-      "valueRaw": "3",
-      "accepted": true,
+      "valueRaw": "5",
+      "accepted": false,
       "mathResult": {
-        "kind": "STEP_HINT",
-        "stage": "DIVIDE_BY_A",
-        "a": 3
+        "kind": "UNKNOWN"
       }
     },
     {
-      "studentText": "x=5",
+      "studentText": "divide by five",
       "route": "accept_step",
-      "stepType": "state_final_answer",
+      "stepType": "divide_by_coefficient",
       "valueRaw": "5",
       "accepted": true,
       "mathResult": {
-        "kind": "FINAL_CORRECT"
+        "kind": "STEP_HINT",
+        "stage": "DIVIDE_BY_WHAT",
+        "a": 3
       }
     }
   ],

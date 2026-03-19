@@ -305,15 +305,15 @@ runTest("accepts divide by 3 after 3x + 5 = 20 reaches ax stage", () => {
   );
 });
 
-runTest("redirects wrong divide choice for 3x + 5 = 20", () => {
-  const result = build("3x + 5 = 20", "divide by 5");
+runTest("rejects wrong divide choice for 3x = 15", () => {
+  const result = build("3x = 15", "divide by 5");
   assert(
-    result.stepVerdict.kind === "STEP_HINT",
-    `Expected STEP_HINT, got ${result.stepVerdict.kind}`
+    result.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
   );
   assert(
-    result.stepVerdict.stage === "DIVIDE_BY_WHAT",
-    `Expected DIVIDE_BY_WHAT, got ${result.stepVerdict.stage}`
+    result.stepVerdict.expected === "divide by 3",
+    `Expected 'divide by 3', got ${result.stepVerdict.expected}`
   );
 });
 
@@ -363,14 +363,15 @@ runTest("rejects add x for 4x + 5 = 20 + x", () => {
   );
 });
 
-runTest("rejects add x for 4x + 5 = 20 + x", () => {
-  const result = build("4x + 5 = 20 + x", "add x");
+runTest("accepts divide by three as valid step for 3x = 15", () => {
+  const result = build("3x = 15", "divide by three");
   assert(
-    result.stepVerdict.kind === "STEP_INCORRECT",
-    `Expected STEP_INCORRECT, got ${result.stepVerdict.kind}`
+    result.stepVerdict.kind === "STEP_HINT",
+    `Expected STEP_HINT, got ${result.stepVerdict.kind}`
   );
   assert(
-    result.stepVerdict.expected === "subtract x",
-    `Expected 'subtract x', got ${result.stepVerdict.expected}`
+    result.stepVerdict.stage === "DIVIDE_BY_A",
+    `Expected DIVIDE_BY_A, got ${result.stepVerdict.stage}`
   );
 });
+

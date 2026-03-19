@@ -1,9 +1,10 @@
 {
-  "problemId": "problem_1773500594375",
+  "problemId": "problem_1773949030718",
   "originalEquation": "3x + 5 = 20",
-  "currentEquation": "3x + 5 = 20",
+  "currentEquation": "3x=15",
   "status": "active",
   "awaitingConfirmation": null,
+  "helpContext": null,
   "history": [
     {
       "studentText": "subtract 5",
@@ -15,6 +16,29 @@
         "kind": "STEP_HINT",
         "stage": "SUBTRACT_B",
         "b": 5
+      }
+    },
+    {
+      "studentText": "3x=15",
+      "route": "accept_step",
+      "stepType": "state_intermediate_equation",
+      "valueRaw": "3x=15",
+      "accepted": true,
+      "mathResult": {
+        "kind": "STEP_CORRECT",
+        "stage": "MOVE_X_TERMS_COMPLETE",
+        "next": "SUBTRACT_B"
+      }
+    },
+    {
+      "studentText": "divide by 5",
+      "route": "accept_step",
+      "stepType": "divide_by_coefficient",
+      "valueRaw": "5",
+      "accepted": false,
+      "mathResult": {
+        "kind": "STEP_INCORRECT",
+        "expected": "divide by 3"
       }
     }
   ],

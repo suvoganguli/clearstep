@@ -303,8 +303,12 @@ export default function Home() {
         />
 
         <div style={{ color: "#666", fontSize: "13px" }}>
-          Phase 1 supports linear equations like <code>ax + b = c</code> with
-          integers.
+          <p>
+            Phase 1 supports linear equations like <code>ax + b = c</code> and <code>ax + b = cx + d</code> with integer coefficients.
+          </p>
+          <p>
+            Enter one step at a time. Solutions must be integers.
+          </p>
         </div>
       </div>
 
