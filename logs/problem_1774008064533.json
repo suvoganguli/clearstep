@@ -1,0 +1,62 @@
+{
+  "problemId": "problem_1774008064533",
+  "originalEquation": "3x + 5 = x + 9",
+  "currentEquation": "3x + 5 = x + 9",
+  "status": "active",
+  "awaitingConfirmation": null,
+  "helpContext": null,
+  "history": [
+    {
+      "studentText": "should i divide by 3?",
+      "route": "help_question",
+      "stepType": "null",
+      "valueRaw": "null",
+      "accepted": false,
+      "mathResult": {
+        "kind": "STEP_INCORRECT",
+        "expected": "subtract 5"
+      }
+    },
+    {
+      "studentText": "should i divide by 3?",
+      "route": "help_question",
+      "stepType": "null",
+      "valueRaw": "null",
+      "accepted": false,
+      "mathResult": {
+        "kind": "STEP_INCORRECT",
+        "expected": "subtract 5"
+      }
+    }
+  ],
+  "algebra": {
+    "version": "v1",
+    "parsed": {
+      "left": {
+        "xCoeff": 3,
+        "constant": 5
+      },
+      "right": {
+        "xCoeff": 1,
+        "constant": 9
+      }
+    },
+    "solved": {
+      "left": {
+        "xCoeff": 3,
+        "constant": 5
+      },
+      "right": {
+        "xCoeff": 1,
+        "constant": 9
+      },
+      "a": 2,
+      "b": 5,
+      "c": 9,
+      "rhsAfterSubtract": 4,
+      "x": 2,
+      "rightXCoeff": 1,
+      "leftConstant": 5
+    }
+  }
+}

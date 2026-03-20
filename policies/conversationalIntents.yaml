@@ -1,0 +1,8 @@
+intents:
+  ask_for_answer:
+    enabled: true
+    confidence_threshold: 0.7
+    phrases:
+      - "give me the answer"
+      - "just tell me x"
+      - "what is x"

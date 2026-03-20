@@ -3,6 +3,7 @@ import {
   setAwaitingConfirmation,
 } from "../lib/tutor/session/problemState.js";
 import { processStudentTurn } from "../lib/tutor/processStudentTurn.js";
+import { buildTutorReply } from "../lib/tutor/dialogue/buildTutorReply.js";
 
 function assert(condition, message) {
   if (!condition) {
@@ -62,6 +63,62 @@ runTest("help request enters two-sided help mode on ax+b=cx+d equation", async (
   assert(
     result.reply.tutorText.includes("Move all x-terms to one side."),
     "Expected two-sided help text"
+  );
+});
+
+runTest("'what should i do' routes to help_tutorial", async () => {
+  const problemState = createProblemState("3x + 15 = 30");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "what should i do",
+  });
+
+  assert(
+    result.routeResult.route === "help_tutorial",
+    `Expected help_tutorial, got ${result.routeResult.route}`
+  );
+});
+
+runTest("'what do i do' routes to help_tutorial", async () => {
+  const problemState = createProblemState("3x + 15 = 30");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "what do i do",
+  });
+
+  assert(
+    result.routeResult.route === "help_tutorial",
+    `Expected help_tutorial, got ${result.routeResult.route}`
+  );
+});
+
+runTest("'what now' routes to help_tutorial", async () => {
+  const problemState = createProblemState("3x + 15 = 30");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "what now",
+  });
+
+  assert(
+    result.routeResult.route === "help_tutorial",
+    `Expected help_tutorial, got ${result.routeResult.route}`
+  );
+});
+
+runTest("'what now' uses light help_tutorial response", async () => {
+  const problemState = createProblemState("3x + 15 = 30");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "what now",
+  });
+
+  assert(
+    !result.reply.tutorText.includes("Example:"),
+    "Did not expect full worked example in light help response"
   );
 });
 
@@ -241,5 +298,133 @@ runTest("wrong constant after help gets corrective feedback", async () => {
   assert(
     afterWrongStep.reply.tutorText.includes("subtract 15"),
     "Expected reply to suggest subtract 15"
+  );
+});
+
+runTest("ask_for_answer routes 'give me the answer' before step parsing", async () => {
+  const problemState = createProblemState("3x + 5 = 20");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "give me the answer",
+  });
+
+  assert(
+    result.routeResult.route === "ask_for_answer",
+    `Expected ask_for_answer, got ${result.routeResult.route}`
+  );
+  assert(
+    result.mathResult === null,
+    "Expected mathResult to remain null for ask_for_answer"
+  );
+});
+
+runTest("ask_for_answer routes 'just tell me x' before step parsing", async () => {
+  const problemState = createProblemState("3x + 5 = 20");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "just tell me x",
+  });
+
+  assert(
+    result.routeResult.route === "ask_for_answer",
+    `Expected ask_for_answer, got ${result.routeResult.route}`
+  );
+  assert(
+    result.mathResult === null,
+    "Expected mathResult to remain null for ask_for_answer"
+  );
+});
+
+runTest("normal math step flow remains unchanged after ask_for_answer hook", async () => {
+  const problemState = createProblemState("3x + 5 = 20");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "subtract 5",
+  });
+
+  assert(
+    result.routeResult.route === "accept_step",
+    `Expected accept_step, got ${result.routeResult.route}`
+  );
+  assert(
+    result.mathResult?.kind === "STEP_HINT",
+    `Expected STEP_HINT, got ${result.mathResult?.kind}`
+  );
+});
+
+runTest("proposed final answer question 'is x = 5?' stays on math path", async () => {
+  const problemState = createProblemState("3x + 5 = 20");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "is x = 5?",
+  });
+
+  assert(
+    result.routeResult.route !== "ask_for_answer",
+    "Did not expect ask_for_answer route for proposed final answer question"
+  );
+  assert(
+    result.mathResult?.kind === "FINAL_CORRECT",
+    `Expected FINAL_CORRECT, got ${result.mathResult?.kind}`
+  );
+});
+
+runTest("proposed answer check 'do i get x = 5?' does not route to ask_for_answer", async () => {
+  const problemState = createProblemState("3x + 5 = 20");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "do i get x = 5?",
+  });
+
+  assert(
+    result.routeResult.route !== "ask_for_answer",
+    "Did not expect ask_for_answer route for answer-check wording"
+  );
+});
+
+runTest("'what is x' is classified as ask_for_answer", async () => {
+  const problemState = createProblemState("3x + 5 = 20");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "what is x",
+  });
+
+  assert(
+    result.routeResult.route === "ask_for_answer",
+    `Expected ask_for_answer, got ${result.routeResult.route}`
+  );
+  assert(
+    result.mathResult === null,
+    "Expected mathResult to remain null for ask_for_answer"
+  );
+});
+
+runTest("help_question + ask_for_help gets specific tentative-operation reply", async () => {
+  const reply = buildTutorReply({
+    routeResult: {
+      route: "help_question",
+      match: {
+        stepType: "ask_for_help",
+        valueRaw: null,
+        rawText: "subtract?",
+      },
+    },
+    mathResult: {},
+    priorHelpContext: null,
+  });
+
+  assert(
+    reply.tutorText.includes("First choose what you want to undo"),
+    "Expected specific tentative-operation guidance"
+  );
+  assert(
+    !reply.tutorText.includes("You’re thinking about the equation, which is good."),
+    "Did not expect generic fallback reply"
   );
 });

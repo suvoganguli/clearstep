@@ -1,0 +1,395 @@
+{
+  "generatedAt": "2026-03-20T12:01:13.473Z",
+  "scenarioCount": 15,
+  "results": [
+    {
+      "name": "general_help_then_hint",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "what should i do?",
+          "route": "help_question",
+          "stepType": "ask_for_help",
+          "valueRaw": null,
+          "mathKind": "UNKNOWN",
+          "expected": null,
+          "tutorText": "You’re thinking about the equation, which is good. What do you want to undo first?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        },
+        {
+          "studentText": "i dont know",
+          "route": "help_tutorial",
+          "stepType": "ask_for_help",
+          "valueRaw": null,
+          "mathKind": null,
+          "expected": null,
+          "tutorText": "For equations like ax + b = c, the usual idea is:\n1. Get the constant away from the x-term.\n2. Then divide by the coefficient of x.\n\nExample:\n3x + 5 = 20\nsubtract 5 from both sides -> 3x = 15\ndivide by 3 -> x = 5\n\nFor your problem, type the next step in words to remove the constant term on the left side (for example: subtract 5)",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        }
+      ]
+    },
+    {
+      "name": "help_question_correct_step",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "do i subtract 5?",
+          "route": "help_question",
+          "stepType": "subtract_constant",
+          "valueRaw": "5",
+          "mathKind": "STEP_HINT",
+          "expected": null,
+          "tutorText": "Yes — subtracting 5 from both sides is a good next step. What equation do you get?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        }
+      ]
+    },
+    {
+      "name": "help_question_wrong_step",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "should i divide by 3?",
+          "route": "help_question",
+          "stepType": "null",
+          "valueRaw": "null",
+          "mathKind": "STEP_INCORRECT",
+          "expected": "subtract 5",
+          "tutorText": "Not quite — try subtract 5.",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        }
+      ]
+    },
+    {
+      "name": "normal_step_correct",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "subtract 5",
+          "route": "accept_step",
+          "stepType": "subtract_constant",
+          "valueRaw": "5",
+          "mathKind": "STEP_HINT",
+          "expected": null,
+          "tutorText": "Good idea. What equation do you get?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x=15"
+        }
+      ]
+    },
+    {
+      "name": "intermediate_equation",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "3x = 15",
+          "route": "accept_step",
+          "stepType": "state_intermediate_equation",
+          "valueRaw": "3x = 15",
+          "mathKind": "STEP_CORRECT",
+          "expected": null,
+          "tutorText": "Nice. What step will you take next?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x=15"
+        }
+      ]
+    },
+    {
+      "name": "final_answer_correct",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "subtract 5",
+          "route": "accept_step",
+          "stepType": "subtract_constant",
+          "valueRaw": "5",
+          "mathKind": "STEP_HINT",
+          "expected": null,
+          "tutorText": "Good idea. What equation do you get?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x=15"
+        },
+        {
+          "studentText": "3x = 15",
+          "route": "accept_step",
+          "stepType": "state_intermediate_equation",
+          "valueRaw": "3x = 15",
+          "mathKind": "STEP_CORRECT",
+          "expected": null,
+          "tutorText": "Nice. What step will you take next?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x=15"
+        },
+        {
+          "studentText": "divide by 3",
+          "route": "accept_step",
+          "stepType": "divide_by_coefficient",
+          "valueRaw": "3",
+          "mathKind": "STEP_HINT",
+          "expected": null,
+          "tutorText": "Good idea. What equation do you get?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "x = 5"
+        },
+        {
+          "studentText": "x = 5",
+          "route": "accept_step",
+          "stepType": "state_final_answer",
+          "valueRaw": "5",
+          "mathKind": "FINAL_CORRECT",
+          "expected": null,
+          "tutorText": "Correct.",
+          "status": "solved",
+          "problemStatus": "solved",
+          "awaitingConfirmation": false,
+          "currentEquation": "x = 5"
+        }
+      ]
+    },
+    {
+      "name": "final_answer_as_question",
+      "problem": "3x = 15",
+      "turns": [
+        {
+          "studentText": "is x = 5?",
+          "route": "ask_for_answer",
+          "stepType": "ask_for_answer",
+          "valueRaw": null,
+          "mathKind": null,
+          "expected": null,
+          "tutorText": "I won’t give the final answer directly, but I can help you get there step by step. Tell me what you want to undo first, or type \"help\".",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x = 15"
+        }
+      ]
+    },
+    {
+      "name": "vague_student_language",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "get rid of the 5",
+          "route": "accept_step",
+          "stepType": "subtract_constant",
+          "valueRaw": "5",
+          "mathKind": "UNKNOWN",
+          "expected": null,
+          "tutorText": "Tell me your next step.",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        }
+      ]
+    },
+    {
+      "name": "typo_help_question",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "do i subtrct 5?",
+          "route": "help_question",
+          "stepType": "subtract_constant",
+          "valueRaw": "5",
+          "mathKind": "STEP_HINT",
+          "expected": null,
+          "tutorText": "Yes — subtracting 5 from both sides is a good next step. What equation do you get?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        }
+      ]
+    },
+    {
+      "name": "declined_confirmation",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "maybe remove the 5?",
+          "route": "help_question",
+          "stepType": "subtract_constant",
+          "valueRaw": "5",
+          "mathKind": "STEP_HINT",
+          "expected": null,
+          "tutorText": "Yes — subtracting 5 from both sides is a good next step. What equation do you get?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        },
+        {
+          "studentText": "no",
+          "route": "accept_step",
+          "stepType": "ask_for_help",
+          "valueRaw": null,
+          "mathKind": "UNKNOWN",
+          "expected": null,
+          "tutorText": "Try focusing on one thing you want to undo first. You can say subtract 5, divide by 3, or type the new equation.",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        }
+      ]
+    },
+    {
+      "name": "wrong_step_then_recovery",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "subtract 6",
+          "route": "accept_step",
+          "stepType": "subtract_constant",
+          "valueRaw": "6",
+          "mathKind": "STEP_INCORRECT",
+          "expected": "subtract 5",
+          "tutorText": "That is not the correct step here. Try: subtract 5. Or type \"help\" to get a better understanding.",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        },
+        {
+          "studentText": "subtract 5",
+          "route": "accept_step",
+          "stepType": "subtract_constant",
+          "valueRaw": "5",
+          "mathKind": "STEP_HINT",
+          "expected": null,
+          "tutorText": "Good idea. What equation do you get?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x=15"
+        }
+      ]
+    },
+    {
+      "name": "two_sided_move_x",
+      "problem": "3x + 5 = x + 9",
+      "turns": [
+        {
+          "studentText": "do i subtract x?",
+          "route": "help_question",
+          "stepType": "move_x_term",
+          "valueRaw": "x",
+          "mathKind": "UNKNOWN",
+          "expected": null,
+          "tutorText": "You’re thinking about the equation, which is good. What do you want to undo first?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = x + 9"
+        }
+      ]
+    },
+    {
+      "name": "two_sided_wrong_move",
+      "problem": "3x + 5 = x + 9",
+      "turns": [
+        {
+          "studentText": "should i divide by 3?",
+          "route": "help_question",
+          "stepType": "null",
+          "valueRaw": "null",
+          "mathKind": "STEP_INCORRECT",
+          "expected": "subtract 5",
+          "tutorText": "Not quite — try subtract 5.",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = x + 9"
+        }
+      ]
+    },
+    {
+      "name": "bare_number_final",
+      "problem": "3x = 15",
+      "turns": [
+        {
+          "studentText": "5",
+          "route": "accept_step",
+          "stepType": "state_final_answer",
+          "valueRaw": "5",
+          "mathKind": "FINAL_CORRECT",
+          "expected": null,
+          "tutorText": "Correct.",
+          "status": "solved",
+          "problemStatus": "solved",
+          "awaitingConfirmation": false,
+          "currentEquation": "x = 5"
+        }
+      ]
+    },
+    {
+      "name": "repeat_help",
+      "problem": "3x + 5 = 20",
+      "turns": [
+        {
+          "studentText": "help",
+          "route": "help_tutorial",
+          "stepType": "ask_for_help",
+          "valueRaw": null,
+          "mathKind": null,
+          "expected": null,
+          "tutorText": "For equations like ax + b = c, the usual idea is:\n1. Get the constant away from the x-term.\n2. Then divide by the coefficient of x.\n\nExample:\n3x + 5 = 20\nsubtract 5 from both sides -> 3x = 15\ndivide by 3 -> x = 5\n\nFor your problem, type the next step in words to remove the constant term on the left side (for example: subtract 5)",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        },
+        {
+          "studentText": "what should i do?",
+          "route": "help_question",
+          "stepType": "ask_for_help",
+          "valueRaw": null,
+          "mathKind": "UNKNOWN",
+          "expected": null,
+          "tutorText": "You’re thinking about the equation, which is good. What do you want to undo first?",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        },
+        {
+          "studentText": "i dont know",
+          "route": "help_tutorial",
+          "stepType": "ask_for_help",
+          "valueRaw": null,
+          "mathKind": null,
+          "expected": null,
+          "tutorText": "For equations like ax + b = c, the usual idea is:\n1. Get the constant away from the x-term.\n2. Then divide by the coefficient of x.\n\nExample:\n3x + 5 = 20\nsubtract 5 from both sides -> 3x = 15\ndivide by 3 -> x = 5\n\nFor your problem, type the next step in words to remove the constant term on the left side (for example: subtract 5)",
+          "status": "active",
+          "problemStatus": "active",
+          "awaitingConfirmation": false,
+          "currentEquation": "3x + 5 = 20"
+        }
+      ]
+    }
+  ]
+}

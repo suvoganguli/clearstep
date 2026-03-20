@@ -64,6 +64,21 @@ runTest("detects 'what should i do next' as help intent", () => {
   assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
 });
 
+runTest("detects 'what should i do' as help intent", () => {
+  const result = detectHelpIntent("what should i do", helpIntentPolicy);
+  assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
+});
+
+runTest("detects 'what do i do' as help intent", () => {
+  const result = detectHelpIntent("what do i do", helpIntentPolicy);
+  assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
+});
+
+runTest("detects 'what now' as help intent", () => {
+  const result = detectHelpIntent("what now", helpIntentPolicy);
+  assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
+});
+
 runTest("detects 'can you show me an example' as help intent", () => {
   const result = detectHelpIntent("can you show me an example", helpIntentPolicy);
   assert(result.isHelpIntent === true, "Expected isHelpIntent === true");

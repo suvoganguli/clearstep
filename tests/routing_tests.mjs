@@ -97,6 +97,21 @@ runTest("routes '3x = 15' as accept_step via deterministic matcher", async () =>
   assert(result.match?.stepType === "state_intermediate_equation", `Expected state_intermediate_equation, got ${result.match?.stepType}`);
 });
 
+runTest("routes tentative 'subtract?' as accept_step via ask_for_help", async () => {
+  const result = await routeStudentStep({
+    studentText: "subtract?",
+    policyConfig,
+    stepsConfig,
+    llmStepMatcher: async () => {
+      throw new Error("LLM matcher should not be called for deterministic match");
+    },
+  });
+
+  assert(result.route === "accept_step", `Expected accept_step, got ${result.route}`);
+  assert(result.match?.source === "deterministic", "Expected deterministic source");
+  assert(result.match?.stepType === "ask_for_help", `Expected ask_for_help, got ${result.match?.stepType}`);
+});
+
 runTest("routes high-confidence LLM match as accept_step", async () => {
   const result = await routeStudentStep({
     studentText: "maybe remove the x term",
