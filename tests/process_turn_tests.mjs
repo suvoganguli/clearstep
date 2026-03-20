@@ -1,9 +1,9 @@
 import {
   createProblemState,
   setAwaitingConfirmation,
-} from "../lib/tutor/session/problemState.js";
-import { processStudentTurn } from "../lib/tutor/processStudentTurn.js";
-import { buildTutorReply } from "../lib/tutor/dialogue/buildTutorReply.js";
+} from "../lib/tutor-core/session/problemState.js";
+import { processStudentTurn } from "../lib/tutor-core/processStudentTurn.js";
+import { buildTutorReply } from "../lib/tutor-core/dialogue/buildTutorReply.js";
 
 function assert(condition, message) {
   if (!condition) {

@@ -1,6 +1,6 @@
-import { loadPolicyConfig } from "../lib/tutor/config/loadPolicyConfig.js";
-import { loadStepsConfig } from "../lib/tutor/config/loadStepsConfig.js";
-import { routeStudentStep } from "../lib/tutor/routing/routeStudentStep.js";
+import { loadPolicyConfig } from "../lib/tutor-core/config/loadPolicyConfig.js";
+import { loadStepsConfig } from "../lib/tutor-core/config/loadStepsConfig.js";
+import { routeStudentStep } from "../lib/tutor-core/routing/routeStudentStep.js";
 
 function assert(condition, message) {
   if (!condition) {

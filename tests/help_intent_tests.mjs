@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
-import { detectHelpIntent } from "../lib/tutor/help/detectHelpIntent.js";
+import { detectHelpIntent } from "../lib/tutor-core/help/detectHelpIntent.js";
 
 function assert(condition, message) {
   if (!condition) {

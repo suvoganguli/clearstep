@@ -1,5 +1,5 @@
-import { createProblemState } from "../lib/tutor/session/problemState.js";
-import { buildHelpResponse } from "../lib/tutor/help/buildHelpResponse.js";
+import { createProblemState } from "../lib/tutor-core/session/problemState.js";
+import { buildHelpResponse } from "../lib/tutor-core/help/buildHelpResponse.js";
 
 function assert(condition, message) {
   if (!condition) {

@@ -5,10 +5,10 @@ loadEnvConfig(process.cwd());
 
 import fs from "fs";
 import path from "path";
-import { processStudentTurn } from "../lib/tutor/processStudentTurn.js";
+import { processStudentTurn } from "../lib/tutor-core/processStudentTurn.js";
 
 // Adjust this import if your initializer lives elsewhere.
-import { createProblemState } from "../lib/tutor/session/problemState.js";
+import { createProblemState } from "../lib/tutor-core/session/problemState.js";
 
 const scenariosPath = path.join(process.cwd(), "tests", "toneScenarios.json");
 const outputDir = path.join(process.cwd(), "logs");
