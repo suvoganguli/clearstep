@@ -7,7 +7,12 @@ import {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { problem, studentMessage, state } = body;
+    // Frontend skeleton sends: { input: string }
+    // Older shape uses: { problem, studentMessage, state, history? }
+    const input = body?.input;
+    const problem = body?.problem ?? "3x + 5 = 20";
+    const studentMessage = input ?? body?.studentMessage;
+    const state = body?.state;
 
     let problemState = state;
 
@@ -22,6 +27,7 @@ export async function POST(req) {
     });
 
     return Response.json({
+      response: result.reply?.tutorText || "",
       content:
         result.reply?.tutorText || "I didn’t understand that. Try again.",
       status: result.reply?.status || "active",
@@ -34,7 +40,7 @@ export async function POST(req) {
     console.error("Tutor API error:", err);
 
     return Response.json(
-      { error: err.message || "Server error" },
+      { response: "", error: err.message || "Server error" },
       { status: 500 },
     );
   }
