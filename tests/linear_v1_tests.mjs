@@ -1,6 +1,7 @@
 import { normalizeEquationText } from "../lib/algebra/common/textNormalize.js";
 import { tryParseLinear, solveLinearFor, checkNextStepFor } from "../lib/algebra/linear/index.js";
 import { canonicalizeLinearEquation } from "../lib/algebra/linear/index.js";
+import { checkNextStep } from "../lib/algebra/linear/v1/engine.js";
 
 function assert(condition, message) {
   if (!condition) {
@@ -67,6 +68,169 @@ runTest("supports 3x = 15", () => {
 });
 
 // ----------------------
+// Decimal coefficients (parser / solve / step checking)
+// ----------------------
+runTest("parses and solves 0.5x + 3 = 7", () => {
+  const result = build("0.5x + 3 = 7");
+  assert(result.solved.x === 8, `Expected x = 8, got ${result.solved.x}`);
+});
+
+runTest("parses and solves 2x + 1 = 2 (non-integer x)", () => {
+  const result = build("2x + 1 = 2");
+  assert(result.solved.x === 0.5, `Expected x = 0.5, got ${result.solved.x}`);
+});
+
+runTest("parses leading-dot coefficient .25x = 1", () => {
+  const result = build(".25x = 1");
+  assert(result.solved.x === 4, `Expected x = 4, got ${result.solved.x}`);
+});
+
+runTest("integer equation still parses as integers", () => {
+  const result = build("3x+5=20");
+  assert(Number.isInteger(result.parsed.left.xCoeff), "left xCoeff should be integer");
+  assert(Number.isInteger(result.solved.x), "x should still be integer for integer problem");
+});
+
+// Stateless step checks against the same original equation (session not simulated).
+runTest("decimal steps 0.5x+3=7: subtract 3", () => {
+  const r = build("0.5x + 3 = 7", "subtract 3");
+  assert(
+    r.stepVerdict.kind === "STEP_HINT" && r.stepVerdict.stage === "SUBTRACT_B",
+    `Expected SUBTRACT_B hint, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 0.5x+3=7: bare 4 (rhs after subtract)", () => {
+  const r = build("0.5x + 3 = 7", "4");
+  assert(
+    r.stepVerdict.kind === "STEP_CORRECT" && r.stepVerdict.stage === "ARITHMETIC_OK",
+    `Expected ARITHMETIC_OK, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 0.5x+3=7: 0.5x=4 (constant subtracted)", () => {
+  const r = build("0.5x + 3 = 7", "0.5x=4");
+  assert(
+    r.stepVerdict.kind === "STEP_CORRECT" &&
+      r.stepVerdict.stage === "SUBTRACT_CONSTANT_COMPLETE",
+    `Expected SUBTRACT_CONSTANT_COMPLETE, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 0.5x+3=7: divide before clearing constant is rejected", () => {
+  const r = build("0.5x + 3 = 7", "divide by 0.5");
+  assert(
+    r.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 0.5x=4: divide by 0.5", () => {
+  const r = build("0.5x = 4", "divide by 0.5");
+  assert(
+    r.stepVerdict.kind === "STEP_HINT" && r.stepVerdict.stage === "DIVIDE_BY_A",
+    `Expected DIVIDE_BY_A hint, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 0.5x+3=7: x=8 final", () => {
+  const r = build("0.5x + 3 = 7", "x=8");
+  assert(r.stepVerdict.kind === "FINAL_CORRECT", `Expected FINAL_CORRECT, got ${r.stepVerdict.kind}`);
+});
+
+runTest("decimal steps 2x+1=2: subtract 1", () => {
+  const r = build("2x + 1 = 2", "subtract 1");
+  assert(
+    r.stepVerdict.kind === "STEP_HINT" && r.stepVerdict.stage === "SUBTRACT_B",
+    `Expected SUBTRACT_B hint, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 2x+1=2: bare 1", () => {
+  const r = build("2x + 1 = 2", "1");
+  assert(
+    r.stepVerdict.kind === "STEP_CORRECT" && r.stepVerdict.stage === "ARITHMETIC_OK",
+    `Expected ARITHMETIC_OK, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 2x+1=2: 2x=1 (constant subtracted)", () => {
+  const r = build("2x + 1 = 2", "2x=1");
+  assert(
+    r.stepVerdict.kind === "STEP_CORRECT" &&
+      r.stepVerdict.stage === "SUBTRACT_CONSTANT_COMPLETE",
+    `Expected SUBTRACT_CONSTANT_COMPLETE, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal ISOLATED_AX via is-prefixed ax=r (skips canonical equation branch)", () => {
+  const r = build("0.5x = 4", "is 0.5x = 4");
+  assert(
+    r.stepVerdict.kind === "STEP_CORRECT" && r.stepVerdict.stage === "ISOLATED_AX",
+    `Expected ISOLATED_AX, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 2x=1: divide by 2", () => {
+  const r = build("2x = 1", "divide by 2");
+  assert(
+    r.stepVerdict.kind === "STEP_HINT" && r.stepVerdict.stage === "DIVIDE_BY_A",
+    `Expected DIVIDE_BY_A hint, got ${JSON.stringify(r.stepVerdict)}`,
+  );
+});
+
+runTest("decimal steps 2x+1=2: x=0.5 final", () => {
+  const r = build("2x + 1 = 2", "x=0.5");
+  assert(r.stepVerdict.kind === "FINAL_CORRECT", `Expected FINAL_CORRECT, got ${r.stepVerdict.kind}`);
+});
+
+runTest("accepts x=0.33 as final for 3x=1 (within ±0.01 of 1/3)", () => {
+  const r = build("3x = 1", "x=0.33");
+  assert(
+    r.stepVerdict.kind === "FINAL_CORRECT",
+    `Expected FINAL_CORRECT, got ${r.stepVerdict.kind}`,
+  );
+});
+
+runTest("rejects x=0.3 as final for 3x=1 (error > 0.01 from 1/3)", () => {
+  const r = build("3x = 1", "x=0.3");
+  assert(
+    r.stepVerdict.kind === "FINAL_INCORRECT",
+    `Expected FINAL_INCORRECT, got ${r.stepVerdict.kind}`,
+  );
+});
+
+runTest("accepts bare 0.33 as final for 3x=1", () => {
+  const r = build("3x = 1", "0.33");
+  assert(
+    r.stepVerdict.kind === "FINAL_CORRECT",
+    `Expected FINAL_CORRECT, got ${r.stepVerdict.kind}`,
+  );
+});
+
+runTest("wrong subtract on 3x+1=2 hints subtract 1 (not subtract 0)", () => {
+  const r = build("3x + 1 = 2", "subtract 0");
+  assert(
+    r.stepVerdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${r.stepVerdict.kind}`,
+  );
+  assert(
+    r.stepVerdict.expected === "subtract 1",
+    `Expected subtract 1, got ${r.stepVerdict.expected}`,
+  );
+});
+
+runTest("expected string snaps near-integer leftConstant noise to 1", () => {
+  const { solved } = build("3x + 1 = 2");
+  const noisy = { ...solved, leftConstant: 0.9999999999998 };
+  const v = checkNextStep("subtract 2", noisy);
+  assert(
+    v.expected === "subtract 1",
+    `Expected subtract 1, got ${v.expected}`,
+  );
+});
+
+// ----------------------
 // Step checking
 // ----------------------
 runTest("accepts subtract 5 as a valid first step for 3x+5=20", () => {
@@ -125,14 +289,9 @@ runTest("accepts x=-15 as final answer for -x+5=20", () => {
 // ----------------------
 // Rejections / boundaries
 // ----------------------
-runTest("rejects fractional solution 2x+1=0", () => {
-  let failed = false;
-  try {
-    build("2x + 1 = 0");
-  } catch (err) {
-    failed = true;
-  }
-  assert(failed, "Expected fractional-solution problem to fail in v1");
+runTest("solves 2x + 1 = 0 to non-integer x", () => {
+  const result = build("2x + 1 = 0");
+  assert(result.solved.x === -0.5, `Expected x = -0.5, got ${result.solved.x}`);
 });
 
 
@@ -157,6 +316,11 @@ runTest("canonicalizes flipped equation 20 = 3x + 5", () => {
 runTest("canonicalizes flipped constant-first equation 20 = 5 + 3x", () => {
   const result = canonicalizeLinearEquation("20 = 5 + 3x");
   assert(result === "20 = 3x + 5", `Expected 20 = 3x + 5, got ${result}`);
+});
+
+runTest("canonicalizes 0.5x + 3 = 7", () => {
+  const result = canonicalizeLinearEquation("0.5x + 3 = 7");
+  assert(result === "0.5x + 3 = 7", `Expected stable decimal canonical form, got ${result}`);
 });
 
 // ----------------------

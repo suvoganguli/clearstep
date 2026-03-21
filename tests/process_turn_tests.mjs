@@ -1,6 +1,7 @@
 import {
   createProblemState,
   setAwaitingConfirmation,
+  setCurrentEquation,
 } from "../lib/tutor-core/session/problemState.js";
 import { processStudentTurn } from "../lib/tutor-core/processStudentTurn.js";
 import { buildTutorReply } from "../lib/tutor-core/dialogue/buildTutorReply.js";
@@ -402,6 +403,80 @@ runTest("'what is x' is classified as ask_for_answer", async () => {
   assert(
     result.mathResult === null,
     "Expected mathResult to remain null for ask_for_answer"
+  );
+});
+
+runTest("divide by 3 on 3x = 1 keeps ax=b as currentEquation (no premature x= line)", async () => {
+  const problemState = createProblemState("3x = 1");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "divide by 3",
+  });
+
+  assert(
+    result.mathResult?.kind === "STEP_HINT" &&
+      result.mathResult?.stage === "DIVIDE_BY_A",
+    `Expected DIVIDE_BY_A hint, got ${JSON.stringify(result.mathResult)}`,
+  );
+  assert(
+    result.problemState.currentEquation.replace(/\s+/g, "").toLowerCase() ===
+      "3x=1",
+    `Expected board to stay 3x = 1, got ${result.problemState.currentEquation}`,
+  );
+});
+
+runTest("divide by 3 validated against ax=b if currentEquation was wrongly x=…", async () => {
+  let problemState = createProblemState("3x = 1");
+  problemState = setCurrentEquation(problemState, `x = ${1 / 3}`);
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "divide by 3",
+  });
+
+  assert(
+    result.mathResult?.kind === "STEP_HINT" &&
+      result.mathResult?.stage === "DIVIDE_BY_A",
+    `Expected DIVIDE_BY_A hint, got ${JSON.stringify(result.mathResult)}`,
+  );
+  assert(
+    !result.reply.tutorText.includes("divide by 1"),
+    `Did not expect wrong divisor in reply: ${result.reply.tutorText}`,
+  );
+});
+
+runTest("repeated subtract 1 after accepted hint gets nudge not subtract 0", async () => {
+  const problemState = createProblemState("3x + 1 = 2");
+
+  const first = await processStudentTurn({
+    problemState,
+    studentText: "subtract 1",
+  });
+
+  assert(
+    first.mathResult?.kind === "STEP_HINT",
+    `Expected first turn STEP_HINT, got ${JSON.stringify(first.mathResult)}`,
+  );
+  assert(first.problemState.history.length === 1, "Expected one history entry");
+  assert(
+    first.problemState.history[0].accepted === true,
+    "Expected first turn accepted",
+  );
+
+  const second = await processStudentTurn({
+    problemState: first.problemState,
+    studentText: "subtract 1",
+  });
+
+  assert(
+    second.mathResult?.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT on repeat, got ${JSON.stringify(second.mathResult)}`,
+  );
+  assert(
+    second.reply.tutorText ===
+      "You already chose that step. Type the new equation you get after doing it on both sides.",
+    `Unexpected reply: ${second.reply.tutorText}`,
   );
 });
 
