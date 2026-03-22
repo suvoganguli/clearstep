@@ -1,4 +1,5 @@
-help_intent_phrases:
+# Substring match on normalized student text (after light-help exact match fails).
+full_help_phrases:
   - "i don't know"
   - "i dont know"
   - "i don't know how to proceed"

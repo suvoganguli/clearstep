@@ -1,0 +1,9 @@
+# Exact normalized full-text match only (checked before full-help substring rules).
+# Normalization: lowercase, ’ -> ', collapse whitespace, trim (same as detectHelpIntent).
+light_help_phrases:
+  - "i'm stuck"
+  - "im stuck"
+  - "i am stuck"
+  - "what should i do"
+  - "what do i do"
+  - "what now"
