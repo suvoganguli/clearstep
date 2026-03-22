@@ -30,6 +30,17 @@ const helpIntentPolicy = {
   ).full_help_phrases,
 };
 
+runTest("detects 'i dont know' as full help intent", () => {
+  const result = detectHelpIntent("i dont know", helpIntentPolicy);
+  assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
+  assert(result.helpStyle === "full", `Expected full, got ${result.helpStyle}`);
+});
+
+runTest("does not treat 'do i subtract 5?' as generic help (help_question path)", () => {
+  const result = detectHelpIntent("do i subtract 5?", helpIntentPolicy);
+  assert(result.isHelpIntent === false, "Expected isHelpIntent === false");
+});
+
 runTest("detects 'help' as full help intent", () => {
   const result = detectHelpIntent("help", helpIntentPolicy);
   assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
@@ -80,6 +91,12 @@ runTest("detects 'what should i do next' as full help (not exact light phrase)",
 
 runTest("detects 'what should i do' as light help intent (exact before substring)", () => {
   const result = detectHelpIntent("what should i do", helpIntentPolicy);
+  assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
+  assert(result.helpStyle === "light", `Expected light, got ${result.helpStyle}`);
+});
+
+runTest("detects 'what should i do?' as light help (trailing ? stripped for light match)", () => {
+  const result = detectHelpIntent("what should i do?", helpIntentPolicy);
   assert(result.isHelpIntent === true, "Expected isHelpIntent === true");
   assert(result.helpStyle === "light", `Expected light, got ${result.helpStyle}`);
 });

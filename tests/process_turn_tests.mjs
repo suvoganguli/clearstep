@@ -123,6 +123,38 @@ runTest("'what now' uses light help_tutorial response", async () => {
   );
 });
 
+runTest("'what should i do?' routes to help_tutorial with light style", async () => {
+  const problemState = createProblemState("3x + 15 = 30");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "what should i do?",
+  });
+
+  assert(
+    result.routeResult.route === "help_tutorial",
+    `Expected help_tutorial, got ${result.routeResult.route}`
+  );
+  assert(
+    !result.reply.tutorText.includes("Example:"),
+    "Did not expect full worked example in light help response"
+  );
+});
+
+runTest("'i dont know' routes to help_tutorial", async () => {
+  const problemState = createProblemState("3x + 15 = 30");
+
+  const result = await processStudentTurn({
+    problemState,
+    studentText: "i dont know",
+  });
+
+  assert(
+    result.routeResult.route === "help_tutorial",
+    `Expected help_tutorial, got ${result.routeResult.route}`
+  );
+});
+
 runTest("help mode clears on the next normal student turn", async () => {
   const problemState = createProblemState("3x + 15 = 30");
 
