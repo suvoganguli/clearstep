@@ -118,11 +118,14 @@ runTest("routes high-confidence LLM match as accept_step", async () => {
     policyConfig,
     stepsConfig,
     llmStepMatcher: async () => ({
-      source: "llm",
-      stepType: "move_x_term",
-      valueRaw: "x",
-      confidence: 0.95,
-      rawText: "maybe remove the x term",
+      kind: "match",
+      match: {
+        source: "llm",
+        stepType: "move_x_term",
+        valueRaw: "x",
+        confidence: 0.95,
+        rawText: "maybe remove the x term",
+      },
     }),
   });
 
@@ -136,11 +139,14 @@ runTest("routes medium-confidence LLM match as confirm_step", async () => {
     policyConfig,
     stepsConfig,
     llmStepMatcher: async () => ({
-      source: "llm",
-      stepType: "divide_by_coefficient",
-      valueRaw: "3",
-      confidence: 0.75,
-      rawText: "maybe divide by 3",
+      kind: "match",
+      match: {
+        source: "llm",
+        stepType: "divide_by_coefficient",
+        valueRaw: "3",
+        confidence: 0.75,
+        rawText: "maybe divide by 3",
+      },
     }),
   });
 
@@ -154,23 +160,59 @@ runTest("routes low-confidence LLM match as recovery_prompt", async () => {
     policyConfig,
     stepsConfig,
     llmStepMatcher: async () => ({
-      source: "llm",
-      stepType: "subtract_constant",
-      valueRaw: "5",
-      confidence: 0.2,
-      rawText: "not sure maybe something",
+      kind: "match",
+      match: {
+        source: "llm",
+        stepType: "subtract_constant",
+        valueRaw: "5",
+        confidence: 0.2,
+        rawText: "not sure maybe something",
+      },
     }),
   });
 
   assert(result.route === "recovery_prompt", `Expected recovery_prompt, got ${result.route}`);
 });
 
-runTest("routes null LLM match as recovery_prompt", async () => {
+runTest("routes null LLM outcome as recovery_prompt (defensive)", async () => {
   const result = await routeStudentStep({
     studentText: "gibberish",
     policyConfig,
     stepsConfig,
     llmStepMatcher: async () => null,
+  });
+
+  assert(result.route === "recovery_prompt", `Expected recovery_prompt, got ${result.route}`);
+});
+
+runTest("routes LLM unavailable as recovery_prompt", async () => {
+  const result = await routeStudentStep({
+    studentText: "gibberish",
+    policyConfig,
+    stepsConfig,
+    llmStepMatcher: async () => ({ kind: "unavailable" }),
+  });
+
+  assert(result.route === "recovery_prompt", `Expected recovery_prompt, got ${result.route}`);
+});
+
+runTest("routes LLM error as recovery_prompt", async () => {
+  const result = await routeStudentStep({
+    studentText: "gibberish",
+    policyConfig,
+    stepsConfig,
+    llmStepMatcher: async () => ({ kind: "error" }),
+  });
+
+  assert(result.route === "recovery_prompt", `Expected recovery_prompt, got ${result.route}`);
+});
+
+runTest("routes LLM no_match as recovery_prompt", async () => {
+  const result = await routeStudentStep({
+    studentText: "gibberish",
+    policyConfig,
+    stepsConfig,
+    llmStepMatcher: async () => ({ kind: "no_match" }),
   });
 
   assert(result.route === "recovery_prompt", `Expected recovery_prompt, got ${result.route}`);
