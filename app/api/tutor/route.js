@@ -37,6 +37,21 @@ export async function POST(req) {
       reply: result.reply,
     });
   } catch (err) {
+    if (err?.code === "OUT_OF_SCOPE_FRACTION") {
+      const msg =
+        err.message ||
+        "I can handle decimals and simple fractions like 1/3, but not mixed fractions like 1 1/2 yet. Please rewrite it as an improper fraction (for example, 3/2) or a decimal.";
+      return Response.json(
+        {
+          response: msg,
+          content: msg,
+          status: "needs_clarification",
+          error: null,
+        },
+        { status: 200 },
+      );
+    }
+
     console.error("Tutor API error:", err);
 
     return Response.json(
