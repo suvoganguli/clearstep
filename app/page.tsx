@@ -304,10 +304,10 @@ export default function Home() {
 
         <div style={{ color: "#666", fontSize: "13px" }}>
           <p>
-            Phase 1 supports linear equations like <code>ax + b = c</code> and <code>ax + b = cx + d</code> with integer coefficients.
+            ClearStep supports linear equations like <code>ax + b = c</code> and <code>ax + b = cx + d</code> using integers, decimals, and simple fractions.
           </p>
           <p>
-            Enter one step at a time. Solutions must be integers.
+            Enter one step at a time. Mixed fractions (like <code>1 1/2</code>) are not supported yet.
           </p>
         </div>
       </div>

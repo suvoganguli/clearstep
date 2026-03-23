@@ -222,3 +222,36 @@ runTest(
     );
   },
 );
+
+runTest(
+  "equivalent operation: 2/3x = 6 with multiply by 3/2 is accepted",
+  async () => {
+    const { version, parsed } = tryParseLinear("2/3x = 6");
+    const solved = solveLinearFor(version, parsed);
+    const verdict = checkNextStepFor(version, "multiply by 3/2", solved);
+
+    assert(
+      verdict.kind === "STEP_HINT",
+      `Expected STEP_HINT, got ${verdict.kind}`,
+    );
+    assert(
+      verdict.stage === "DIVIDE_BY_A",
+      `Expected DIVIDE_BY_A, got ${verdict.stage}`,
+    );
+  },
+);
+
+runTest("hint formatting shows 2/3 instead of long float", async () => {
+  const { version, parsed } = tryParseLinear("2/3x = 6");
+  const solved = solveLinearFor(version, parsed);
+  const verdict = checkNextStepFor(version, "divide by 2", solved);
+
+  assert(
+    verdict.kind === "STEP_INCORRECT",
+    `Expected STEP_INCORRECT, got ${verdict.kind}`,
+  );
+  assert(
+    verdict.expected === "divide by 2/3",
+    `Expected 'divide by 2/3', got ${verdict.expected}`,
+  );
+});
