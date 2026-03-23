@@ -192,3 +192,33 @@ runTest("fraction step parsing: x = 1/3 is recognized as final", async () => {
     `Expected FINAL_CORRECT, got ${result.mathResult?.kind}`,
   );
 });
+
+runTest(
+  "equivalent operation: x/2 = 1 with multiply by 2 is accepted",
+  async () => {
+    const problemState = createProblemState("x/2 + 1 = 2");
+    const afterIsolate = await processStudentTurn({
+      problemState,
+      studentText: "x/2 = 1",
+    });
+
+    assert(
+      afterIsolate.mathResult?.kind === "STEP_CORRECT",
+      `Expected STEP_CORRECT on isolation, got ${afterIsolate.mathResult?.kind}`,
+    );
+
+    const afterMultiply = await processStudentTurn({
+      problemState: afterIsolate.problemState,
+      studentText: "multiply by 2",
+    });
+
+    assert(
+      afterMultiply.mathResult?.kind === "STEP_HINT",
+      `Expected STEP_HINT, got ${afterMultiply.mathResult?.kind}`,
+    );
+    assert(
+      afterMultiply.mathResult?.stage === "DIVIDE_BY_A",
+      `Expected DIVIDE_BY_A, got ${afterMultiply.mathResult?.stage}`,
+    );
+  },
+);

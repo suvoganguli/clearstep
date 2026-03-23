@@ -112,6 +112,44 @@ runTest("routes tentative 'subtract?' as accept_step via ask_for_help", async ()
   assert(result.match?.stepType === "ask_for_help", `Expected ask_for_help, got ${result.match?.stepType}`);
 });
 
+runTest("routes 'divide by 1/2' as accept_step via deterministic matcher", async () => {
+  const result = await routeStudentStep({
+    studentText: "divide by 1/2",
+    policyConfig,
+    stepsConfig,
+    llmStepMatcher: async () => {
+      throw new Error("LLM matcher should not be called for deterministic match");
+    },
+  });
+
+  assert(result.route === "accept_step", `Expected accept_step, got ${result.route}`);
+  assert(result.match?.source === "deterministic", "Expected deterministic source");
+  assert(
+    result.match?.stepType === "divide_by_coefficient",
+    `Expected divide_by_coefficient, got ${result.match?.stepType}`,
+  );
+  assert(result.match?.valueRaw === "1/2", `Expected valueRaw 1/2, got ${result.match?.valueRaw}`);
+});
+
+runTest("routes 'subtract 1/2' as accept_step via deterministic matcher", async () => {
+  const result = await routeStudentStep({
+    studentText: "subtract 1/2",
+    policyConfig,
+    stepsConfig,
+    llmStepMatcher: async () => {
+      throw new Error("LLM matcher should not be called for deterministic match");
+    },
+  });
+
+  assert(result.route === "accept_step", `Expected accept_step, got ${result.route}`);
+  assert(result.match?.source === "deterministic", "Expected deterministic source");
+  assert(
+    result.match?.stepType === "subtract_constant",
+    `Expected subtract_constant, got ${result.match?.stepType}`,
+  );
+  assert(result.match?.valueRaw === "1/2", `Expected valueRaw 1/2, got ${result.match?.valueRaw}`);
+});
+
 runTest("routes high-confidence LLM match as accept_step", async () => {
   const result = await routeStudentStep({
     studentText: "maybe remove the x term",
